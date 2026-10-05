@@ -41,7 +41,32 @@ exception
   when duplicate_object then null;
 end $$;
 
--- 4. Clean-up, in case the earlier sign-in version of this script was run.
+-- 4. Photos of the places we've been.
+alter table public.places add column if not exists photos text[] not null default '{}';
+
+-- One storage folder ("bucket") for them: pictures only, 5 MB each at most.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('photos', 'photos', true, 5242880, array['image/jpeg'])
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+-- Like the map itself, photos can be added and removed without an account.
+drop policy if exists "open photos read" on storage.objects;
+drop policy if exists "open photos add" on storage.objects;
+drop policy if exists "open photos remove" on storage.objects;
+
+create policy "open photos read" on storage.objects
+  for select to anon, authenticated using (bucket_id = 'photos');
+
+create policy "open photos add" on storage.objects
+  for insert to anon, authenticated with check (bucket_id = 'photos');
+
+create policy "open photos remove" on storage.objects
+  for delete to anon, authenticated using (bucket_id = 'photos');
+
+-- 5. Clean-up, in case the earlier sign-in version of this script was run.
 drop policy if exists "members read places" on public.places;
 drop policy if exists "members add places" on public.places;
 drop policy if exists "members change places" on public.places;

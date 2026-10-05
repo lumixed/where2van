@@ -31,6 +31,8 @@ export interface Place {
   /** 1 to 5 stars, or null when not rated. */
   rating: number | null;
   review: string;
+  /** Photos of the visit, as file paths in the shared photo storage. */
+  photos: string[];
 }
 
 export const CATEGORY_LABEL: Record<Category, string> = {

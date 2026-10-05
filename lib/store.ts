@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { dayKey } from "./dates";
+import { deletePhotos } from "./photos";
 import { pushPlace, pushRemoval } from "./remote";
 import { CATEGORIES, type Category, type Place } from "./types";
 
@@ -31,6 +32,9 @@ interface PlacesState {
   /** Marks a place as done, with the day we went and how it was. */
   saveMemory: (id: string, memory: Memory) => void;
   moveToTodo: (id: string) => void;
+  /** Attaches an uploaded photo to a place, or takes one off again. */
+  addPhoto: (id: string, path: string) => void;
+  removePhoto: (id: string, path: string) => void;
   removePlace: (id: string) => void;
   /**
    * Changes arriving from the shared database. Unlike the actions above,
@@ -61,6 +65,7 @@ function upgrade(saved: unknown): Place[] {
       plannedTime: old.plannedTime ?? "",
       rating: old.rating ?? null,
       review: old.review ?? "",
+      photos: old.photos ?? [],
     } as Place;
   });
 }
@@ -91,6 +96,7 @@ export const usePlaces = create<PlacesState>()(
             doneAt: null,
             rating: null,
             review: "",
+            photos: [],
           };
           set({ places: [place, ...get().places] });
           pushPlace(place);
@@ -110,9 +116,21 @@ export const usePlaces = create<PlacesState>()(
           }),
         moveToTodo: (id) =>
           edit(id, { status: "want", doneAt: null, rating: null, review: "" }),
+        addPhoto: (id, path) => {
+          const place = get().places.find((p) => p.id === id);
+          if (place) edit(id, { photos: [...place.photos, path] });
+        },
+        removePhoto: (id, path) => {
+          const place = get().places.find((p) => p.id === id);
+          if (!place) return;
+          edit(id, { photos: place.photos.filter((p) => p !== path) });
+          deletePhotos([path]);
+        },
         removePlace: (id) => {
+          const place = get().places.find((p) => p.id === id);
           set({ places: get().places.filter((p) => p.id !== id) });
           pushRemoval(id);
+          if (place) deletePhotos(place.photos);
         },
         remote: {
           replaceAll: (places) => set({ places }),
@@ -130,7 +148,7 @@ export const usePlaces = create<PlacesState>()(
     },
     {
       name: "where2van:v1",
-      version: 3,
+      version: 4,
       partialize: (state) => ({ places: state.places }),
       migrate: (saved) => ({ places: upgrade(saved) }),
     },

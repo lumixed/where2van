@@ -5,6 +5,7 @@ import { dayKey, formatDay, formatPlan } from "@/lib/dates";
 import { usePlaces } from "@/lib/store";
 import { CATEGORY_LABEL, STATUS_LABEL, type Place } from "@/lib/types";
 import { useUi } from "@/lib/ui";
+import Photos from "./Photos";
 import { cn, PixelIcon, StarPicker, Stars, Tile } from "./pixel";
 
 function mapsLink(place: Place) {
@@ -100,6 +101,7 @@ function Details({ place, setMode }: { place: Place; setMode: (mode: Mode) => vo
               We went on {formatDay(place.doneAt)}
             </p>
           )}
+          <Photos place={place} />
         </div>
       ) : place.plannedFor ? (
         <p className="mt-3 flex items-center gap-1.5 text-sm font-semibold">

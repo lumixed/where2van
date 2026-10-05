@@ -16,6 +16,13 @@ async function refresh() {
   usePlaces.getState().remote.replaceAll((data as PlaceRow[]).map(fromRow));
 }
 
+/** Photos need the latest database setup; until it has been run, they stay off. */
+async function checkPhotos() {
+  if (!supabase) return;
+  const { error } = await supabase.from("places").select("photos").limit(1);
+  useSync.setState({ photos: !error });
+}
+
 /**
  * The first time a device connects, the places already saved on it are
  * copied up, so nothing added before sync existed is lost. It runs once per
@@ -68,6 +75,7 @@ export function startSync() {
 
   (async () => {
     try {
+      await checkPhotos();
       await importLocalPlaces();
       await refresh();
       if (!stopped) channel = listen();

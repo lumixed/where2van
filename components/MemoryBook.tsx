@@ -4,6 +4,7 @@ import { formatDay, fromDayKey } from "@/lib/dates";
 import { usePlaces } from "@/lib/store";
 import type { Place } from "@/lib/types";
 import { useUi } from "@/lib/ui";
+import { PhotoStrip } from "./Photos";
 import { cn, PixelIcon, Stars, Tile } from "./pixel";
 
 interface Month {
@@ -96,6 +97,7 @@ export default function MemoryBook() {
                   </span>
                   {memory.rating && <Stars rating={memory.rating} className="mt-2" />}
                   {memory.review && <span className="mt-2 block">{memory.review}</span>}
+                  <PhotoStrip place={memory} />
                 </button>
               </li>
             ))}

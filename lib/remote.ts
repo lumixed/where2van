@@ -12,12 +12,19 @@ export type SyncPhase = "local" | "loading" | "ready";
 
 interface SyncState {
   phase: SyncPhase;
+  /**
+   * Whether the database has been set up for photos (the latest
+   * `supabase/schema.sql`). Until then the app hides photos and leaves the
+   * column out of what it saves, so nothing else breaks.
+   */
+  photos: boolean;
   /** Goes up each time a change could not be saved, so the app can react. */
   failures: number;
 }
 
 export const useSync = create<SyncState>()(() => ({
   phase: supabase ? "loading" : "local",
+  photos: false,
   failures: 0,
 }));
 
@@ -37,10 +44,12 @@ export interface PlaceRow {
   done_at: string | null;
   rating: number | null;
   review: string;
+  photos?: string[];
 }
 
 export function toRow(place: Place): PlaceRow {
   return {
+    ...(useSync.getState().photos ? { photos: place.photos } : null),
     id: place.id,
     name: place.name,
     address: place.address,
@@ -74,6 +83,7 @@ export function fromRow(row: PlaceRow): Place {
     doneAt: row.done_at,
     rating: row.rating,
     review: row.review,
+    photos: row.photos ?? [],
   };
 }
 

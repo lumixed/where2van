@@ -20,6 +20,8 @@ Then open http://localhost:3000.
 - **Plan a date** for a to-do and see it on the calendar.
 - **Mark a place as done** with the day you went, a star rating and a note.
 - **Memories**: everything you've done, newest first, like a scrapbook.
+- **Photos**: add pictures to a place you've been. They are shrunk before
+  upload, so they stay small.
 - **Pick for us**: can't decide? It picks a random to-do, by category or from
   the ones closest to you.
 
@@ -36,17 +38,20 @@ Then open http://localhost:3000.
   (`supabase/schema.sql`). `lib/sync.ts` loads them when the app opens and
   listens for live changes; `lib/store.ts` sends every change. Without keys
   in `.env.local` the app still runs, keeping everything in the browser.
+- **Photos**: Supabase Storage, in a public `photos` bucket (`lib/photos.ts`).
+  They only switch on once the latest `supabase/schema.sql` has been run.
 - **No sign-in**: anyone who has the website's link can see and change the
   map, so the link stays between the two of us.
 
 ## Setting up sync
 
 1. In Supabase, open the SQL Editor, paste `supabase/schema.sql` and run it.
+   Run it again whenever the file changes; it is safe to repeat.
 2. Copy the project URL and the publishable key into `.env.local`
    (see `.env.example`). Never the secret key.
 
 ## Roadmap
 
-1. Put it online
-2. A rating each, with her face; photos; "pick for us"
+1. A rating each, with her face
+2. Reminders for plans, badges and stats
 3. Landmarks and sound
