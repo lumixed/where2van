@@ -14,8 +14,9 @@ Then open http://localhost:3000.
 
 ## What you can do
 
-- **Add places** by searching or dropping a pin, in seven categories: eat,
-  café, activity, concert, outdoors, shopping and other.
+- **Add places** by searching, dropping a pin or pasting a Google Maps link,
+  in seven categories: eat, café, activity, concert, outdoors, shopping and
+  other. It warns you if the place is already on the map.
 - **To do and Done lists**, filterable by category.
 - **Plan a date** for a to-do and see it on the calendar.
 - **Mark a place as done** with the day you went, a star rating and a note.
@@ -38,6 +39,9 @@ Then open http://localhost:3000.
   `lib/pixel.ts`.
 - **Place search**: Photon, a free search service on OpenStreetMap data
   (`lib/geocode.ts`).
+- **Links**: a pasted Google Maps link goes through `app/api/link`, a small
+  server step that follows the short link's redirects and reads the place's
+  name and position out of the address (`lib/mapsLink.ts`).
 - **Shared data**: Supabase. Places live in one shared table
   (`supabase/schema.sql`). `lib/sync.ts` loads them when the app opens and
   listens for live changes; `lib/store.ts` sends every change. Without keys

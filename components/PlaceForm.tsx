@@ -2,7 +2,9 @@
 
 import { useRef, useState } from "react";
 import { findDuplicate } from "@/lib/duplicates";
-import { searchPlaces, type GeoResult } from "@/lib/geocode";
+import { distanceKm } from "@/lib/geo";
+import { reversePlace, searchPlaces, type GeoResult } from "@/lib/geocode";
+import { looksLikeMapsLink, type LinkPlace } from "@/lib/mapsLink";
 import { usePlaces, type PlaceInput } from "@/lib/store";
 import { CATEGORIES, CATEGORY_LABEL, STATUS_LABEL } from "@/lib/types";
 import { useUi, type Form } from "@/lib/ui";
@@ -21,7 +23,11 @@ export default function PlaceForm({ form }: { form: Form }) {
   );
 }
 
-type Phase = "idle" | "loading" | "done" | "error";
+/** `link` and `link-error` are for a pasted Google Maps link instead of a search. */
+type Phase = "idle" | "loading" | "done" | "error" | "link" | "link-error";
+
+/** A search hit this close to a link's position is taken to be the same place. */
+const SAME_PLACE_KM = 0.2;
 
 function Finder() {
   const places = usePlaces((s) => s.places);
@@ -29,6 +35,8 @@ function Finder() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<GeoResult[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
+  /** Whether the results came from a pasted link and not from typing. */
+  const [fromLink, setFromLink] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const request = useRef<AbortController>(undefined);
 
@@ -42,9 +50,14 @@ function Finder() {
       setPhase("idle");
       return;
     }
-    setPhase("loading");
     const controller = new AbortController();
     request.current = controller;
+    if (looksLikeMapsLink(term)) {
+      readLink(term, controller.signal);
+      return;
+    }
+    setFromLink(false);
+    setPhase("loading");
     timer.current = setTimeout(async () => {
       try {
         setResults(await searchPlaces(term, controller.signal));
@@ -53,6 +66,46 @@ function Finder() {
         if (!controller.signal.aborted) setPhase("error");
       }
     }, 280);
+  }
+
+  /** A pasted Google Maps link: fill in the place it points at. */
+  async function readLink(link: string, signal: AbortSignal) {
+    setResults([]);
+    setPhase("link");
+    try {
+      const response = await fetch(`/api/link?url=${encodeURIComponent(link)}`, { signal });
+      if (!response.ok) throw new Error("unreadable link");
+      const found: LinkPlace = await response.json();
+      const text = found.query ?? found.name;
+      let hits = text ? await searchPlaces(text, signal).catch(() => []) : [];
+      if (hits.length === 0 && found.name && found.name !== text) {
+        hits = await searchPlaces(found.name, signal).catch(() => []);
+      }
+
+      if (found.lat !== null && found.lng !== null) {
+        // The link says where; our own map data adds the address and type.
+        const spot = { lat: found.lat, lng: found.lng };
+        const known =
+          hits.find((hit) => distanceKm(hit, spot) <= SAME_PLACE_KM) ??
+          (await reversePlace(spot.lat, spot.lng, signal).catch(() => null));
+        setDraft({
+          name: found.name ?? known?.name ?? "Dropped pin",
+          address: known?.address ?? "",
+          ...spot,
+          category: known?.category ?? "eat",
+          note: "",
+        });
+        return;
+      }
+
+      // The link only names the place: show what our search finds for it.
+      setQuery(found.name ?? "");
+      setResults(hits);
+      setFromLink(true);
+      setPhase("done");
+    } catch {
+      if (!signal.aborted) setPhase("link-error");
+    }
   }
 
   function choose(hit: GeoResult) {
@@ -78,14 +131,25 @@ function Finder() {
           autoFocus
           value={query}
           onChange={(e) => onQuery(e.target.value)}
-          placeholder="Restaurant, venue, park, anything…"
+          placeholder="Search, or paste a Google Maps link"
           className="field pl-9"
         />
       </label>
 
       <div className="scroll-thin mt-2 max-h-[38dvh] min-h-24 overflow-y-auto">
         {phase === "idle" && (
-          <p className="px-1 py-3 text-mute">Search for the place by name.</p>
+          <p className="px-1 py-3 text-mute">
+            Search for the place by name, or paste a link shared from Google Maps.
+          </p>
+        )}
+        {phase === "link" && <p className="blink px-1 py-3 font-semibold">Reading the link…</p>}
+        {phase === "link-error" && (
+          <p className="px-1 py-3 text-heart">
+            Couldn&apos;t read that link. Try searching for the place by name.
+          </p>
+        )}
+        {phase === "done" && fromLink && results.length > 0 && (
+          <p className="px-1 pb-1 pt-2 text-sm text-mute">From your link. Pick the right one:</p>
         )}
         {phase === "loading" && results.length === 0 && (
           <p className="blink px-1 py-3 font-semibold">Searching…</p>
