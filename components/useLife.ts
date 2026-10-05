@@ -15,6 +15,13 @@ const INK = "#2a2238";
 const FPS = 20;
 /** Below this zoom the city is too small for trains and birds to read. */
 const MIN_ZOOM = 10.5;
+/**
+ * A train is drawn at its real length (about 70 m for a SkyTrain), but never
+ * shorter than this many map pixels, or it would vanish when zoomed out.
+ */
+const TRAIN_METRES = 70;
+const TRAIN_PIXELS = 16;
+const TRAIN_CARS = 3;
 
 // ---- vehicles: trains and ferries that shuttle along a fixed route ----
 
@@ -186,15 +193,32 @@ export function useLife(mapRef: RefObject<MapLibreMap | null>) {
           box(p.x - (w >> 1) + 1, p.y, w - 2, 1, v.route.color);
           continue;
         }
-        // A train is three cars, each a small outlined block, strung along the track.
-        for (let car = 0; car < 3; car++) {
-          const back = car * 4.5 * metresPerPixel * (forward ? -1 : 1);
-          const p = spot(along(v, distance + back));
-          if (!onScreen(p)) continue;
-          box(p.x - 2, p.y - 2, 4, 4, INK);
-          box(p.x - 1, p.y - 1, 2, 2, car === 0 ? "#ffffff" : v.route.color);
-        }
+        drawTrain(v, distance, forward, metresPerPixel);
       }
+    }
+
+    /**
+     * A train is one long body that bends with the track: white, with a
+     * stripe in the line's colour, thin gaps between its cars and a
+     * headlight at the front.
+     */
+    function drawTrain(v: Vehicle, distance: number, forward: boolean, metresPerPixel: number) {
+      const length = Math.max(TRAIN_METRES, TRAIN_PIXELS * metresPerPixel);
+      // At the ends of the line the whole train stays on the track.
+      const head = forward ? Math.max(distance, length) : Math.min(distance, v.length - length);
+      const steps = Math.round(length / metresPerPixel);
+      const body = Array.from({ length: steps + 1 }, (_, i) =>
+        spot(along(v, head + (forward ? -1 : 1) * (i / steps) * length)),
+      );
+      if (!body.some((p) => onScreen(p))) return;
+
+      const carLength = Math.round(steps / TRAIN_CARS);
+      const isGap = (i: number) => i > 0 && i < steps && i % carLength === 0;
+      // Three passes, so one part's outline never eats into its neighbour.
+      for (const p of body) box(p.x - 2, p.y - 2, 4, 4, INK);
+      body.forEach((p, i) => isGap(i) || box(p.x - 1, p.y - 1, 2, 2, "#ffffff"));
+      body.forEach((p, i) => isGap(i) || box(p.x, p.y, 1, 1, v.route.color));
+      box(body[0].x - 1, body[0].y - 1, 2, 2, "#ffe58f");
     }
 
     function drawGulls(now: number) {
