@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { supabase } from "./supabase";
+import type { People } from "./people";
 import type { Category, Place, Status } from "./types";
 
 /**
@@ -18,6 +19,8 @@ interface SyncState {
    * column out of what it saves, so nothing else breaks.
    */
   photos: boolean;
+  /** The same, for a rating each and for our names and faces. */
+  people: boolean;
   /** Goes up each time a change could not be saved, so the app can react. */
   failures: number;
 }
@@ -25,6 +28,7 @@ interface SyncState {
 export const useSync = create<SyncState>()(() => ({
   phase: supabase ? "loading" : "local",
   photos: false,
+  people: false,
   failures: 0,
 }));
 
@@ -45,11 +49,15 @@ export interface PlaceRow {
   rating: number | null;
   review: string;
   photos?: string[];
+  rating_a?: number | null;
+  rating_b?: number | null;
 }
 
 export function toRow(place: Place): PlaceRow {
+  const ready = useSync.getState();
   return {
-    ...(useSync.getState().photos ? { photos: place.photos } : null),
+    ...(ready.photos ? { photos: place.photos } : null),
+    ...(ready.people ? { rating_a: place.ratings.a, rating_b: place.ratings.b } : null),
     id: place.id,
     name: place.name,
     address: place.address,
@@ -84,6 +92,7 @@ export function fromRow(row: PlaceRow): Place {
     rating: row.rating,
     review: row.review,
     photos: row.photos ?? [],
+    ratings: { a: row.rating_a ?? null, b: row.rating_b ?? null },
   };
 }
 
@@ -107,5 +116,14 @@ export function pushRemoval(id: string) {
     .from("places")
     .delete()
     .eq("id", id)
+    .then(({ error }) => error && reportFailure(error), reportFailure);
+}
+
+/** Saves our names and faces, which live in a single shared row. */
+export function pushPeople(people: People) {
+  if (!supabase || !useSync.getState().people) return;
+  supabase
+    .from("settings")
+    .upsert({ id: 1, people })
     .then(({ error }) => error && reportFailure(error), reportFailure);
 }

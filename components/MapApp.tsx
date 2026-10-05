@@ -10,11 +10,13 @@ import PlaceCard from "./PlaceCard";
 import PlaceForm from "./PlaceForm";
 import PlacesPanel from "./PlacesPanel";
 import Reminders from "./Reminders";
+import UsSheet from "./UsSheet";
 
 export default function MapApp() {
   const form = useUi((s) => s.form);
   const pickMode = useUi((s) => s.pickMode);
   const picker = useUi((s) => s.picker);
+  const us = useUi((s) => s.us);
 
   useEffect(() => startSync(), []);
 
@@ -29,6 +31,7 @@ export default function MapApp() {
       {pickMode && <PickBanner />}
       {form && !pickMode && <PlaceForm form={form} />}
       {picker && <PickForUs />}
+      {us && <UsSheet />}
       <Toast />
     </main>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDay, fromDayKey } from "@/lib/dates";
+import { overall } from "@/lib/ratings";
 import { usePlaces } from "@/lib/store";
 import type { Place } from "@/lib/types";
 import { useUi } from "@/lib/ui";
@@ -44,7 +45,7 @@ export default function MemoryBook() {
   const memories = places
     .filter((p) => p.status === "done")
     .sort((a, b) => (b.doneAt ?? "").localeCompare(a.doneAt ?? ""));
-  const ratings = memories.flatMap((p) => (p.rating ? [p.rating] : []));
+  const ratings = memories.flatMap((p) => overall(p) ?? []);
   const average = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
 
   if (memories.length === 0) {
@@ -95,7 +96,7 @@ export default function MemoryBook() {
                       </span>
                     </span>
                   </span>
-                  {memory.rating && <Stars rating={memory.rating} className="mt-2" />}
+                  <Stars rating={overall(memory)} className="mt-2" />
                   {memory.review && <span className="mt-2 block">{memory.review}</span>}
                   <PhotoStrip place={memory} />
                 </button>

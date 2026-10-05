@@ -45,12 +45,20 @@ export function Tile({
   );
 }
 
-const STAR_ON = { __html: starSvg(true) };
-const STAR_OFF = { __html: starSvg(false) };
+const STAR = {
+  full: { __html: starSvg("full") },
+  half: { __html: starSvg("half") },
+  none: { __html: starSvg("none") },
+};
 const FIVE = [1, 2, 3, 4, 5];
 
-/** A read-only rating, e.g. four gold stars and one empty. */
-export function Stars({ rating, className }: { rating: number; className?: string }) {
+/**
+ * A read-only rating out of five, such as four gold stars and one empty.
+ * Averages can land on a half, which shows as a half-gold star. Renders
+ * nothing when there is no rating to show.
+ */
+export function Stars({ rating, className }: { rating: number | null; className?: string }) {
+  if (rating === null) return null;
   return (
     <span
       role="img"
@@ -61,36 +69,12 @@ export function Stars({ rating, className }: { rating: number; className?: strin
         <span
           key={n}
           className="tile-art w-[18px]"
-          dangerouslySetInnerHTML={n <= rating ? STAR_ON : STAR_OFF}
+          dangerouslySetInnerHTML={
+            rating >= n ? STAR.full : rating >= n - 0.5 ? STAR.half : STAR.none
+          }
         />
       ))}
     </span>
-  );
-}
-
-/** Tap a star to rate; tap the same star again to clear the rating. */
-export function StarPicker({
-  value,
-  onChange,
-}: {
-  value: number | null;
-  onChange: (value: number | null) => void;
-}) {
-  return (
-    <div role="radiogroup" aria-label="Rating" className="flex gap-1">
-      {FIVE.map((n) => (
-        <button
-          key={n}
-          type="button"
-          role="radio"
-          aria-checked={value === n}
-          aria-label={`${n} ${n === 1 ? "star" : "stars"}`}
-          onClick={() => onChange(value === n ? null : n)}
-          className="tile-art w-9 p-0.5 hover:scale-110"
-          dangerouslySetInnerHTML={value !== null && n <= value ? STAR_ON : STAR_OFF}
-        />
-      ))}
-    </div>
   );
 }
 

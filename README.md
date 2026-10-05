@@ -19,7 +19,10 @@ Then open http://localhost:3000.
   other. It warns you if the place is already on the map.
 - **To do and Done lists**, filterable by category.
 - **Plan a date** for a to-do and see it on the calendar.
-- **Mark a place as done** with the day you went, a star rating and a note.
+- **Mark a place as done** with the day you went, a rating and a note.
+- **A rating each**: each of us rates on our own phone. A lone rating stays
+  hidden until the other one has rated too. Upload a face for each score and
+  it replaces the stars.
 - **Memories**: everything you've done, newest first, like a scrapbook.
 - **Photos**: add pictures to a place you've been. They are shrunk before
   upload, so they stay small.
@@ -47,7 +50,10 @@ Then open http://localhost:3000.
   listens for live changes; `lib/store.ts` sends every change. Without keys
   in `.env.local` the app still runs, keeping everything in the browser.
 - **Photos**: Supabase Storage, in a public `photos` bucket (`lib/photos.ts`).
-  They only switch on once the latest `supabase/schema.sql` has been run.
+- **The two of us**: names and faces live in one shared `settings` row
+  (`lib/people.ts`); which of us a device belongs to stays on that device.
+- Photos and a rating each only switch on once the latest
+  `supabase/schema.sql` has been run; until then the app works without them.
 - **No sign-in**: anyone who has the website's link can see and change the
   map, so the link stays between the two of us.
 
@@ -60,6 +66,5 @@ Then open http://localhost:3000.
 
 ## Roadmap
 
-1. A rating each, with her face
-2. Install as a phone app
-3. Landmarks and sound
+1. Install as a phone app
+2. Landmarks and sound

@@ -1,6 +1,7 @@
 "use client";
 
 import type { SpriteName } from "@/lib/pixel";
+import { useSync } from "@/lib/remote";
 import { usePlaces } from "@/lib/store";
 import {
   CATEGORIES,
@@ -48,7 +49,8 @@ function byListOrder(a: Place, b: Place) {
 export default function PlacesPanel() {
   const view = useUi((s) => s.view);
   const panelOpen = useUi((s) => s.panelOpen);
-  const { openPanel, closePanel, openAdd, openPicker } = useUi.getState();
+  const hasPeople = useSync((s) => s.people);
+  const { openPanel, closePanel, openAdd, openPicker, openUs } = useUi.getState();
 
   return (
     <>
@@ -70,6 +72,12 @@ export default function PlacesPanel() {
               <Logo className="text-base" />
               <Tally className="mt-2 md:mt-0" />
             </div>
+            {hasPeople && (
+              <button type="button" className="btn px-2.5 py-2.5" onClick={openUs}>
+                <PixelIcon name="gear" />
+                <span className="sr-only">The two of us: names and faces</span>
+              </button>
+            )}
             <button type="button" className="btn px-2.5 py-2.5 md:hidden" onClick={closePanel}>
               <PixelIcon name="close" />
               <span className="sr-only">Close</span>

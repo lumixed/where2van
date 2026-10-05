@@ -1,4 +1,5 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { completePeople, usePeople } from "./people";
 import { fromRow, toRow, useSync, type PlaceRow } from "./remote";
 import { usePlaces } from "./store";
 import { supabase } from "./supabase";
@@ -21,6 +22,20 @@ async function checkPhotos() {
   if (!supabase) return;
   const { error } = await supabase.from("places").select("photos").limit(1);
   useSync.setState({ photos: !error });
+}
+
+/** A rating each needs the latest setup too. When it is there, load our names and faces. */
+async function checkPeople() {
+  if (!supabase) return;
+  const [columns, settings] = await Promise.all([
+    supabase.from("places").select("rating_a").limit(1),
+    supabase.from("settings").select("people").eq("id", 1).maybeSingle(),
+  ]);
+  const ready = !columns.error && !settings.error;
+  useSync.setState({ people: ready });
+  if (ready && settings.data) {
+    usePeople.getState().replaceFromRemote(completePeople(settings.data.people));
+  }
 }
 
 /**
@@ -59,6 +74,15 @@ function listen(): RealtimeChannel | null {
         else remote.upsert(fromRow(change.new as PlaceRow));
       },
     )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "settings" },
+      (change) => {
+        if (change.eventType === "DELETE") return;
+        const { people } = change.new as { people: unknown };
+        usePeople.getState().replaceFromRemote(completePeople(people));
+      },
+    )
     .subscribe();
 }
 
@@ -75,7 +99,7 @@ export function startSync() {
 
   (async () => {
     try {
-      await checkPhotos();
+      await Promise.all([checkPhotos(), checkPeople()]);
       await importLocalPlaces();
       await refresh();
       if (!stopped) channel = listen();

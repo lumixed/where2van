@@ -129,6 +129,21 @@ button:disabled {
     border-color: var(--color-paper);
   }
 
+  /* A face from the rating scale: a 64-pixel picture, enlarged without smoothing. */
+  .face {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    border: 3px solid var(--color-ink);
+    object-fit: cover;
+    image-rendering: pixelated;
+  }
+
+  .face.outline-sky {
+    outline: 3px solid var(--color-sky);
+    outline-offset: 2px;
+  }
+
   .field {
     width: 100%;
     padding: 0.5rem 0.7rem;

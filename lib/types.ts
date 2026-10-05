@@ -10,6 +10,9 @@ export const CATEGORIES = [
 
 export type Category = (typeof CATEGORIES)[number];
 
+/** The two of us. Which one a device belongs to is chosen on that device. */
+export type PersonId = "a" | "b";
+
 /** `want` = still to do, `done` = we went, so it is now a memory. */
 export type Status = "want" | "done";
 
@@ -28,8 +31,13 @@ export interface Place {
   plannedTime: string;
   /** The day we went, as a "YYYY-MM-DD" key. */
   doneAt: string | null;
-  /** 1 to 5 stars, or null when not rated. */
+  /**
+   * The shared rating from before we each had our own: 1 to 5 stars, or
+   * null. Kept so older memories still show their score.
+   */
   rating: number | null;
+  /** What each of us gave it, 1 to 5, or null when that person has not rated. */
+  ratings: Record<PersonId, number | null>;
   review: string;
   /** Photos of the visit, as file paths in the shared photo storage. */
   photos: string[];

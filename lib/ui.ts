@@ -22,6 +22,8 @@ interface UiState {
   pickMode: boolean;
   /** Whether "Pick for us" is open. */
   picker: boolean;
+  /** Whether the "Us" box (names and faces) is open. */
+  us: boolean;
   /** Which side-panel tab is showing, and whether the panel is open on phones. */
   view: PanelView;
   panelOpen: boolean;
@@ -39,6 +41,8 @@ interface UiState {
   dropPin: (lat: number, lng: number) => void;
   openPicker: () => void;
   closePicker: () => void;
+  openUs: () => void;
+  closeUs: () => void;
   openPanel: (view: PanelView) => void;
   closePanel: () => void;
   setStatus: (status: StatusFilter) => void;
@@ -52,6 +56,7 @@ export const useUi = create<UiState>()((set, get) => ({
   form: null,
   pickMode: false,
   picker: false,
+  us: false,
   view: "places",
   panelOpen: false,
   status: "all",
@@ -64,6 +69,7 @@ export const useUi = create<UiState>()((set, get) => ({
       panelOpen: false,
       pickMode: false,
       picker: false,
+      us: false,
     }),
   openEdit: (place) =>
     set({
@@ -123,8 +129,11 @@ export const useUi = create<UiState>()((set, get) => ({
       })
       .catch(() => {});
   },
-  openPicker: () => set({ picker: true, panelOpen: false, form: null, pickMode: false }),
+  openPicker: () =>
+    set({ picker: true, us: false, panelOpen: false, form: null, pickMode: false }),
   closePicker: () => set({ picker: false }),
+  openUs: () => set({ us: true, picker: false, panelOpen: false, form: null, pickMode: false }),
+  closeUs: () => set({ us: false }),
   openPanel: (view) => set({ view, panelOpen: true }),
   closePanel: () => set({ panelOpen: false }),
   setStatus: (status) => set({ status }),

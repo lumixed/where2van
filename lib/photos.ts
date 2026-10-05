@@ -65,6 +65,39 @@ export async function uploadPhoto(placeId: string, file: Blob): Promise<string> 
   return storePhoto(placeId, full, small);
 }
 
+/** Faces are stored tiny on purpose: shown enlarged, they turn into pixel art. */
+const FACE = 64;
+
+/** Cuts the middle square out of a picture and shrinks it to a small face. */
+export async function cropFace(file: Blob): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  const side = Math.min(bitmap.width, bitmap.height);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = FACE;
+  canvas
+    .getContext("2d")!
+    .drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, FACE, FACE);
+  bitmap.close();
+  return new Promise((resolve, reject) =>
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("Could not save the picture"))),
+      "image/jpeg",
+      0.9,
+    ),
+  );
+}
+
+/** Saves a face for the rating scale; returns its path. */
+export async function uploadFace(file: Blob): Promise<string> {
+  if (!supabase) throw new Error("Faces need the shared database");
+  const path = `faces/${crypto.randomUUID()}.jpg`;
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, await cropFace(file), { contentType: "image/jpeg", cacheControl: "31536000" });
+  if (error) throw error;
+  return path;
+}
+
 /** Deletes photos and their previews from storage. Failing is harmless: just leftovers. */
 export function deletePhotos(paths: string[]) {
   if (!supabase || paths.length === 0) return;

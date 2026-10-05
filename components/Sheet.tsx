@@ -26,7 +26,7 @@ export default function Sheet({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="panel pop relative w-full border-x-0 border-b-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pointer-events-auto md:w-[360px] md:border-[3px] md:pb-4"
+        className="panel pop scroll-thin relative max-h-[calc(100dvh-4rem)] w-full overflow-y-auto border-x-0 border-b-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pointer-events-auto md:w-[360px] md:border-[3px] md:pb-4"
       >
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-xl font-bold">{title}</h2>

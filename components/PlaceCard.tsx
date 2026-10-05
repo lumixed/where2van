@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { dayKey, formatDay, formatPlan } from "@/lib/dates";
+import { PERSON_IDS, usePeople } from "@/lib/people";
+import { useSync } from "@/lib/remote";
 import { usePlaces } from "@/lib/store";
-import { CATEGORY_LABEL, STATUS_LABEL, type Place } from "@/lib/types";
+import { CATEGORY_LABEL, STATUS_LABEL, type PersonId, type Place } from "@/lib/types";
 import { useUi } from "@/lib/ui";
 import Photos from "./Photos";
-import { cn, PixelIcon, StarPicker, Stars, Tile } from "./pixel";
+import { cn, PixelIcon, Tile } from "./pixel";
+import { RatingLines, RatingPicker } from "./Ratings";
 
 function mapsLink(place: Place) {
   const query = place.address
@@ -82,6 +85,10 @@ function Card({ place }: { place: Place }) {
 function Details({ place, setMode }: { place: Place; setMode: (mode: Mode) => void }) {
   const done = place.status === "done";
   const overdue = !done && place.plannedFor !== null && place.plannedFor < dayKey();
+  // With a rating each, the button is about my own score, not the place's.
+  const mine = usePeople((s) => (s.me ? place.ratings[s.me] : null));
+  const eachRates = useSync((s) => s.people);
+  const rated = eachRates ? mine !== null : place.rating !== null;
 
   return (
     <>
@@ -93,7 +100,7 @@ function Details({ place, setMode }: { place: Place; setMode: (mode: Mode) => vo
 
       {done ? (
         <div className="mt-3 space-y-1.5">
-          {place.rating && <Stars rating={place.rating} />}
+          <RatingLines place={place} />
           {place.review && <p>{place.review}</p>}
           {place.doneAt && (
             <p className="flex items-center gap-1.5 text-sm text-mute">
@@ -129,7 +136,7 @@ function Details({ place, setMode }: { place: Place; setMode: (mode: Mode) => vo
         {done ? (
           <button type="button" className="btn w-full" onClick={() => setMode("memory")}>
             <PixelIcon name="activity" />
-            {place.rating ? "Edit rating" : "Rate it"}
+            {eachRates ? (rated ? "Edit my rating" : "Add my rating") : rated ? "Edit rating" : "Rate it"}
           </button>
         ) : (
           <button type="button" className="btn w-full" onClick={() => setMode("plan")}>
@@ -158,18 +165,68 @@ function Details({ place, setMode }: { place: Place; setMode: (mode: Mode) => vo
   );
 }
 
-/** "How was it?": the day we went, a star rating and a few words. */
+/**
+ * "How was it?": the day we went, a rating and a few words. Once we each
+ * rate on our own, it first needs to know which of us is holding the phone.
+ */
 function MemoryForm({ place, onClose }: { place: Place; onClose: () => void }) {
+  const eachRates = useSync((s) => s.people);
+  const me = usePeople((s) => s.me);
+  const people = usePeople((s) => s.people);
+  const { setMe } = usePeople.getState();
+
+  if (eachRates && !me) {
+    return (
+      <div className="mt-3">
+        <p className="mb-2 font-semibold">Who&apos;s rating?</p>
+        <div className="grid grid-cols-2 gap-2">
+          {PERSON_IDS.map((id) => (
+            <button key={id} type="button" className="btn py-3" onClick={() => setMe(id)}>
+              {people[id].name}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-sm text-mute">
+          This device will remember. Names and faces can be changed under the gear button.
+        </p>
+        <button type="button" className="btn mt-3 w-full" onClick={onClose}>
+          Cancel
+        </button>
+      </div>
+    );
+  }
+  // Keyed by person, so switching who is rating starts from that person's score.
+  return (
+    <MemoryFields
+      key={me ?? "shared"}
+      place={place}
+      by={eachRates ? (me ?? undefined) : undefined}
+      onClose={onClose}
+    />
+  );
+}
+
+function MemoryFields({
+  place,
+  by,
+  onClose,
+}: {
+  place: Place;
+  by?: PersonId;
+  onClose: () => void;
+}) {
   const today = dayKey();
   const planned = place.plannedFor && place.plannedFor <= today ? place.plannedFor : null;
+  const people = usePeople((s) => s.people);
   const [date, setDate] = useState(place.doneAt ?? planned ?? today);
-  const [rating, setRating] = useState(place.rating);
+  const [rating, setRating] = useState(by ? place.ratings[by] : place.rating);
   const [review, setReview] = useState(place.review);
   const done = place.status === "done";
+  const other: PersonId | null = by ? (by === "a" ? "b" : "a") : null;
 
   function save(e: React.FormEvent) {
     e.preventDefault();
-    usePlaces.getState().saveMemory(place.id, { date, rating, review: review.trim() });
+    usePlaces.getState().saveMemory(place.id, { date, rating, review: review.trim(), by });
     if (!done) useUi.getState().showToast("Saved as a memory");
     onClose();
   }
@@ -177,8 +234,19 @@ function MemoryForm({ place, onClose }: { place: Place; onClose: () => void }) {
   return (
     <form onSubmit={save} className="mt-3 space-y-3">
       <div>
-        <p className="mb-1 text-sm font-semibold">How was it?</p>
-        <StarPicker value={rating} onChange={setRating} />
+        <p className="mb-1 flex items-baseline justify-between gap-2 text-sm font-semibold">
+          {by ? `How was it, ${people[by].name}?` : "How was it?"}
+          {other && (
+            <button
+              type="button"
+              className="font-normal text-sky underline"
+              onClick={() => usePeople.getState().setMe(other)}
+            >
+              I&apos;m {people[other].name}
+            </button>
+          )}
+        </p>
+        <RatingPicker value={rating} onChange={setRating} faces={by ? people[by].faces : undefined} />
       </div>
       <label className="block">
         <span className="mb-1 block text-sm font-semibold">When did we go?</span>

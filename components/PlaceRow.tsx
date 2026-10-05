@@ -1,6 +1,7 @@
 "use client";
 
 import { formatPlan } from "@/lib/dates";
+import { overall } from "@/lib/ratings";
 import { CATEGORY_LABEL, type Place } from "@/lib/types";
 import { useUi } from "@/lib/ui";
 import { cn, PixelIcon, Stars, Tile } from "./pixel";
@@ -22,8 +23,8 @@ export default function PlaceRow({ place, detail }: { place: Place; detail?: str
         <span className="block truncate font-semibold">{place.name}</span>
         {detail ? (
           <span className="block truncate text-sm text-mute">{detail}</span>
-        ) : place.status === "done" && place.rating ? (
-          <Stars rating={place.rating} className="mt-1" />
+        ) : place.status === "done" && overall(place) !== null ? (
+          <Stars rating={overall(place)} className="mt-1" />
         ) : (
           <span className="flex items-center gap-1.5 text-sm text-mute">
             {place.plannedFor && <PixelIcon name="calendar" className="size-3.5 text-sky" />}

@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 import { dayKey } from "./dates";
 import { deletePhotos } from "./photos";
 import { pushPlace, pushRemoval } from "./remote";
-import { CATEGORIES, type Category, type Place } from "./types";
+import { CATEGORIES, type Category, type PersonId, type Place } from "./types";
 
 export interface PlaceInput {
   name: string;
@@ -18,6 +18,11 @@ export interface Memory {
   date: string;
   rating: number | null;
   review: string;
+  /**
+   * Whose rating this is. Left out, it is saved as the shared rating, which
+   * is how it worked before we each had our own.
+   */
+  by?: PersonId;
 }
 
 interface PlacesState {
@@ -64,6 +69,7 @@ function upgrade(saved: unknown): Place[] {
       plannedFor: old.plannedFor ?? null,
       plannedTime: old.plannedTime ?? "",
       rating: old.rating ?? null,
+      ratings: old.ratings ?? { a: null, b: null },
       review: old.review ?? "",
       photos: old.photos ?? [],
     } as Place;
@@ -95,6 +101,7 @@ export const usePlaces = create<PlacesState>()(
             plannedTime: "",
             doneAt: null,
             rating: null,
+            ratings: { a: null, b: null },
             review: "",
             photos: [],
           };
@@ -105,17 +112,29 @@ export const usePlaces = create<PlacesState>()(
         updatePlace: edit,
         planVisit: (id, date, time) =>
           edit(id, { plannedFor: date, plannedTime: date ? time : "" }),
-        saveMemory: (id, memory) =>
+        saveMemory: (id, memory) => {
+          const place = get().places.find((p) => p.id === id);
+          if (!place) return;
           edit(id, {
             status: "done",
             doneAt: memory.date,
-            rating: memory.rating,
             review: memory.review,
             plannedFor: null,
             plannedTime: "",
-          }),
+            // A personal rating takes over from the old shared one.
+            ...(memory.by
+              ? { rating: null, ratings: { ...place.ratings, [memory.by]: memory.rating } }
+              : { rating: memory.rating }),
+          });
+        },
         moveToTodo: (id) =>
-          edit(id, { status: "want", doneAt: null, rating: null, review: "" }),
+          edit(id, {
+            status: "want",
+            doneAt: null,
+            rating: null,
+            ratings: { a: null, b: null },
+            review: "",
+          }),
         addPhoto: (id, path) => {
           const place = get().places.find((p) => p.id === id);
           if (place) edit(id, { photos: [...place.photos, path] });
@@ -148,7 +167,7 @@ export const usePlaces = create<PlacesState>()(
     },
     {
       name: "where2van:v1",
-      version: 4,
+      version: 5,
       partialize: (state) => ({ places: state.places }),
       migrate: (saved) => ({ places: upgrade(saved) }),
     },

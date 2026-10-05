@@ -66,7 +66,34 @@ create policy "open photos add" on storage.objects
 create policy "open photos remove" on storage.objects
   for delete to anon, authenticated using (bucket_id = 'photos');
 
--- 5. Clean-up, in case the earlier sign-in version of this script was run.
+-- 5. A rating each: what each of the two of us gave a place.
+alter table public.places
+  add column if not exists rating_a smallint check (rating_a between 1 and 5);
+alter table public.places
+  add column if not exists rating_b smallint check (rating_b between 1 and 5);
+
+-- Our names and the faces we rate with: one shared row.
+create table if not exists public.settings (
+  id smallint primary key default 1 check (id = 1),
+  people jsonb not null default '{}'
+);
+
+alter table public.settings enable row level security;
+
+drop policy if exists "open settings" on public.settings;
+create policy "open settings" on public.settings
+  for all to anon, authenticated using (true) with check (true);
+
+grant select, insert, update on public.settings to anon, authenticated;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.settings;
+exception
+  when duplicate_object then null;
+end $$;
+
+-- 6. Clean-up, in case the earlier sign-in version of this script was run.
 drop policy if exists "members read places" on public.places;
 drop policy if exists "members add places" on public.places;
 drop policy if exists "members change places" on public.places;

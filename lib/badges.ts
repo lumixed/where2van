@@ -1,4 +1,5 @@
 import type { SpriteName } from "./pixel";
+import { overall } from "./ratings";
 import type { Category, Place } from "./types";
 
 export interface Badge {
@@ -39,7 +40,7 @@ export interface Stats {
 
 export function stats(places: Place[]): Stats {
   const memories = places.filter((p) => p.status === "done");
-  const ratings = memories.flatMap((p) => (p.rating ? [p.rating] : []));
+  const ratings = memories.flatMap((p) => overall(p) ?? []);
   const byCategory = { eat: 0, cafe: 0, activity: 0, concert: 0, outdoors: 0, shop: 0, other: 0 };
   for (const memory of memories) byCategory[memory.category]++;
   return {
@@ -56,8 +57,8 @@ export function stats(places: Place[]): Stats {
 export function badges(places: Place[]): Badge[] {
   const s = stats(places);
   const memories = places.filter((p) => p.status === "done");
-  const rated = memories.filter((p) => p.rating).length;
-  const loved = memories.filter((p) => p.rating === 5).length;
+  const rated = memories.filter((p) => overall(p) !== null).length;
+  const loved = memories.filter((p) => overall(p) === 5).length;
   const months = new Map<string, number>();
   for (const memory of memories) {
     const month = memory.doneAt?.slice(0, 7);

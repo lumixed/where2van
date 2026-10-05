@@ -182,6 +182,15 @@ export const SPRITES = {
     "#######",
     "...#...",
   ],
+  gear: [
+    "..#.#..",
+    ".#####.",
+    "##...##",
+    ".#...#.",
+    "##...##",
+    ".#####.",
+    "..#.#..",
+  ],
   dice: [
     ".#####.",
     "#.....#",
@@ -284,13 +293,20 @@ function outlineOf(rows: readonly string[]): string[] {
 
 const STAR_OUTLINE = spritePath(outlineOf(SPRITES.activity));
 const STAR_FILL = spritePath(SPRITES.activity, 1, 1);
+/** The left half of the star, up to and including its middle column. */
+const STAR_HALF = spritePath(
+  SPRITES.activity.map((row) => row.slice(0, 4)),
+  1,
+  1,
+);
 
-/** A rating star with a dark outline, gold when `on`. */
-export function starSvg(on: boolean): string {
+/** A rating star with a dark outline: gold, half gold, or empty. */
+export function starSvg(fill: "full" | "half" | "none"): string {
   return svg(
     9,
     9,
-    `<path fill="${INK}" fill-opacity="${on ? 1 : 0.35}" d="${STAR_OUTLINE}"/>` +
-      `<path fill="${on ? TILE.want : "#efe3c4"}" d="${STAR_FILL}"/>`,
+    `<path fill="${INK}" fill-opacity="${fill === "none" ? 0.35 : 1}" d="${STAR_OUTLINE}"/>` +
+      `<path fill="${fill === "full" ? TILE.want : "#efe3c4"}" d="${STAR_FILL}"/>` +
+      (fill === "half" ? `<path fill="${TILE.want}" d="${STAR_HALF}"/>` : ""),
   );
 }
