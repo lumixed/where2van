@@ -4,13 +4,14 @@ import { useEffect } from "react";
 import { startSync } from "@/lib/sync";
 import { useUi } from "@/lib/ui";
 import { useWorld } from "@/lib/world";
-import { BottomBar, PickBanner, Toast, TopBar } from "./Bars";
+import { BadgeBanner, BottomBar, PickBanner, Toast, TopBar } from "./Bars";
 import MapView from "./MapView";
 import PickForUs from "./PickForUs";
 import PlaceCard from "./PlaceCard";
 import PlaceForm from "./PlaceForm";
 import PlacesPanel from "./PlacesPanel";
 import Reminders from "./Reminders";
+import { useCelebrations } from "./useCelebrations";
 import UsSheet from "./UsSheet";
 
 export default function MapApp() {
@@ -20,6 +21,7 @@ export default function MapApp() {
   const us = useUi((s) => s.us);
 
   useEffect(() => startSync(), []);
+  useCelebrations();
 
   // Keep Vancouver's clock and weather current while the map is open.
   useEffect(() => {
@@ -46,6 +48,7 @@ export default function MapApp() {
       {picker && <PickForUs />}
       {us && <UsSheet />}
       <Toast />
+      <BadgeBanner />
     </main>
   );
 }
