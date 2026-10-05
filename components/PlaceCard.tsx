@@ -7,6 +7,7 @@ import { useSync } from "@/lib/remote";
 import { usePlaces } from "@/lib/store";
 import { CATEGORY_LABEL, STATUS_LABEL, type PersonId, type Place } from "@/lib/types";
 import { useUi } from "@/lib/ui";
+import { removePlaceWithUndo } from "@/lib/undo";
 import Photos from "./Photos";
 import { cn, PixelIcon, Tile } from "./pixel";
 import { RatingLines, RatingPicker } from "./Ratings";
@@ -19,7 +20,7 @@ function mapsLink(place: Place) {
 }
 
 /** What the card is showing below the place's name. */
-type Mode = "view" | "memory" | "plan" | "remove";
+type Mode = "view" | "memory" | "plan";
 
 export default function PlaceCard() {
   const selectedId = useUi((s) => s.selectedId);
@@ -60,24 +61,6 @@ function Card({ place }: { place: Place }) {
       {mode === "view" && <Details place={place} setMode={setMode} />}
       {mode === "memory" && <MemoryForm place={place} onClose={back} />}
       {mode === "plan" && <PlanForm place={place} onClose={back} />}
-      {mode === "remove" && (
-        <div className="mt-3 flex items-center gap-2">
-          <p className="flex-1 font-semibold">Remove it from the map?</p>
-          <button
-            type="button"
-            className="btn btn-danger"
-            onClick={() => {
-              usePlaces.getState().removePlace(place.id);
-              select(null);
-            }}
-          >
-            Remove
-          </button>
-          <button type="button" className="btn" onClick={back}>
-            Keep
-          </button>
-        </div>
-      )}
     </section>
   );
 }
@@ -156,7 +139,14 @@ function Details({ place, setMode }: { place: Place; setMode: (mode: Mode) => vo
           >
             Edit
           </button>
-          <button type="button" className="btn flex-1" onClick={() => setMode("remove")}>
+          <button
+            type="button"
+            className="btn flex-1"
+            onClick={() => {
+              useUi.getState().select(null);
+              removePlaceWithUndo(place);
+            }}
+          >
             Remove
           </button>
         </div>

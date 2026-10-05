@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { dayKey } from "./dates";
-import { deletePhotos } from "./photos";
 import { pushPlace, pushRemoval } from "./remote";
 import { CATEGORIES, type Category, type PersonId, type Place } from "./types";
 
@@ -37,10 +36,16 @@ interface PlacesState {
   /** Marks a place as done, with the day we went and how it was. */
   saveMemory: (id: string, memory: Memory) => void;
   moveToTodo: (id: string) => void;
-  /** Attaches an uploaded photo to a place, or takes one off again. */
-  addPhoto: (id: string, path: string) => void;
+  /**
+   * Attaches an uploaded photo to a place (at `index`, or at the end), or
+   * takes one off again. The picture file itself is left alone, so the
+   * removal can be undone; see `lib/undo.ts`.
+   */
+  addPhoto: (id: string, path: string, index?: number) => void;
   removePhoto: (id: string, path: string) => void;
   removePlace: (id: string) => void;
+  /** Puts back a place that was just removed. */
+  restorePlace: (place: Place) => void;
   /**
    * Changes arriving from the shared database. Unlike the actions above,
    * these only update this device and are not sent back.
@@ -135,21 +140,25 @@ export const usePlaces = create<PlacesState>()(
             ratings: { a: null, b: null },
             review: "",
           }),
-        addPhoto: (id, path) => {
+        addPhoto: (id, path, index) => {
           const place = get().places.find((p) => p.id === id);
-          if (place) edit(id, { photos: [...place.photos, path] });
+          if (!place || place.photos.includes(path)) return;
+          const photos = [...place.photos];
+          photos.splice(index ?? photos.length, 0, path);
+          edit(id, { photos });
         },
         removePhoto: (id, path) => {
           const place = get().places.find((p) => p.id === id);
-          if (!place) return;
-          edit(id, { photos: place.photos.filter((p) => p !== path) });
-          deletePhotos([path]);
+          if (place) edit(id, { photos: place.photos.filter((p) => p !== path) });
         },
         removePlace: (id) => {
-          const place = get().places.find((p) => p.id === id);
           set({ places: get().places.filter((p) => p.id !== id) });
           pushRemoval(id);
-          if (place) deletePhotos(place.photos);
+        },
+        restorePlace: (place) => {
+          if (get().places.some((p) => p.id === place.id)) return;
+          set({ places: [place, ...get().places] });
+          pushPlace(place);
         },
         remote: {
           replaceAll: (places) => set({ places }),

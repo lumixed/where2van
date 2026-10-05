@@ -7,6 +7,7 @@ import { useSync } from "@/lib/remote";
 import { usePlaces } from "@/lib/store";
 import type { Place } from "@/lib/types";
 import { useUi } from "@/lib/ui";
+import { removePhotoWithUndo } from "@/lib/undo";
 import { PixelIcon } from "./pixel";
 
 // Photos are plain <img> tags on purpose: they come straight from our own
@@ -112,17 +113,12 @@ function Lightbox({
   index: number;
   onIndex: (index: number | null) => void;
 }) {
-  const [confirming, setConfirming] = useState(false);
   const path = place.photos[index];
   const count = place.photos.length;
-  const step = (by: number) => {
-    setConfirming(false);
-    onIndex((index + by + count) % count);
-  };
+  const step = (by: number) => onIndex((index + by + count) % count);
 
   function remove() {
-    usePlaces.getState().removePhoto(place.id, path);
-    setConfirming(false);
+    removePhotoWithUndo(place, path);
     // Stay on the neighbouring photo, or close when that was the last one.
     onIndex(count === 1 ? null : Math.min(index, count - 2));
   }
@@ -165,20 +161,9 @@ function Lightbox({
             <span className="sr-only">Previous photo</span>
           </button>
         )}
-        {confirming ? (
-          <>
-            <button type="button" className="btn btn-danger" onClick={remove}>
-              Remove for good
-            </button>
-            <button type="button" className="btn" onClick={() => setConfirming(false)}>
-              Keep
-            </button>
-          </>
-        ) : (
-          <button type="button" className="btn" onClick={() => setConfirming(true)}>
-            Remove photo
-          </button>
-        )}
+        <button type="button" className="btn" onClick={remove}>
+          Remove photo
+        </button>
         {count > 1 && (
           <button type="button" className="btn px-3 py-2.5" onClick={() => step(1)}>
             <PixelIcon name="right" />

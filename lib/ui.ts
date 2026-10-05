@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { reversePlace } from "./geocode";
+import type { SpriteName } from "./pixel";
 import type { PlaceInput } from "./store";
 import type { CategoryFilter, Place, StatusFilter } from "./types";
 
@@ -12,12 +13,24 @@ export type PanelView = "places" | "calendar" | "memories" | "badges";
 export interface Toast {
   key: number;
   text: string;
+  /** A button on the toast, such as "Undo". The toast then stays up longer. */
+  action?: { label: string; run: () => void };
+}
+
+/** The pop-up for a badge that has just been earned. */
+export interface Banner {
+  key: number;
+  title: string;
+  text: string;
+  icon: SpriteName;
 }
 
 const DROPPED_PIN = "Dropped pin";
 
 interface UiState {
   selectedId: string | null;
+  /** The pin showing its small preview bubble; a second tap opens the card. */
+  previewId: string | null;
   form: Form | null;
   pickMode: boolean;
   /** Whether "Pick for us" is open. */
@@ -30,7 +43,9 @@ interface UiState {
   status: StatusFilter;
   category: CategoryFilter;
   toast: Toast | null;
+  banner: Banner | null;
   select: (id: string | null) => void;
+  preview: (id: string | null) => void;
   openAdd: () => void;
   openEdit: (place: Place) => void;
   closeForm: () => void;
@@ -47,12 +62,15 @@ interface UiState {
   closePanel: () => void;
   setStatus: (status: StatusFilter) => void;
   setCategory: (category: CategoryFilter) => void;
-  showToast: (text: string) => void;
+  showToast: (text: string, action?: Toast["action"]) => void;
   clearToast: () => void;
+  showBanner: (banner: Omit<Banner, "key">) => void;
+  clearBanner: () => void;
 }
 
 export const useUi = create<UiState>()((set, get) => ({
   selectedId: null,
+  previewId: null,
   form: null,
   pickMode: false,
   picker: false,
@@ -62,7 +80,10 @@ export const useUi = create<UiState>()((set, get) => ({
   status: "all",
   category: "all",
   toast: null,
-  select: (id) => set({ selectedId: id, panelOpen: id ? false : get().panelOpen }),
+  banner: null,
+  select: (id) =>
+    set({ selectedId: id, previewId: null, panelOpen: id ? false : get().panelOpen }),
+  preview: (id) => set({ previewId: id, selectedId: null }),
   openAdd: () =>
     set({
       form: { mode: "add", draft: null },
@@ -138,6 +159,8 @@ export const useUi = create<UiState>()((set, get) => ({
   closePanel: () => set({ panelOpen: false }),
   setStatus: (status) => set({ status }),
   setCategory: (category) => set({ category }),
-  showToast: (text) => set({ toast: { text, key: Date.now() } }),
+  showToast: (text, action) => set({ toast: { text, action, key: Date.now() } }),
   clearToast: () => set({ toast: null }),
+  showBanner: (banner) => set({ banner: { ...banner, key: Date.now() } }),
+  clearBanner: () => set({ banner: null }),
 }));

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePlaces } from "@/lib/store";
 import { useUi } from "@/lib/ui";
+import { UNDO_MS } from "@/lib/undo";
 import { formatClock, SKY_LABEL, useWorld, type Sky } from "@/lib/world";
 import type { SpriteName } from "@/lib/pixel";
 import { cn, Logo, PixelIcon } from "./pixel";
@@ -110,7 +111,8 @@ export function Toast() {
 
   useEffect(() => {
     if (!toast) return;
-    const timer = setTimeout(clearToast, 2400);
+    // Long enough to reach for "Undo" when there is one.
+    const timer = setTimeout(clearToast, toast.action ? UNDO_MS : 2400);
     return () => clearTimeout(timer);
   }, [toast, clearToast]);
 
@@ -121,10 +123,65 @@ export function Toast() {
       role="status"
       className="pointer-events-none absolute inset-x-0 top-20 z-30 flex justify-center px-3 md:left-[392px] md:top-6"
     >
-      <p className="panel toast flex items-center gap-2 px-4 py-2.5 font-semibold">
+      <div
+        className={cn(
+          "panel flex items-center gap-2 py-2 pl-4 font-semibold",
+          toast.action ? "pop pointer-events-auto pr-2" : "toast pr-4",
+        )}
+      >
         <PixelIcon name="heart" className="size-3.5 text-heart" />
         {toast.text}
-      </p>
+        {toast.action && (
+          <button
+            type="button"
+            className="btn ml-2 py-1.5"
+            onClick={() => {
+              toast.action?.run();
+              clearToast();
+            }}
+          >
+            {toast.action.label}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** "Badge earned!" It slides in, stays a few seconds, and opens the Badges tab when tapped. */
+export function BadgeBanner() {
+  const banner = useUi((s) => s.banner);
+  const clearBanner = useUi((s) => s.clearBanner);
+
+  useEffect(() => {
+    if (!banner) return;
+    const timer = setTimeout(clearBanner, 4500);
+    return () => clearTimeout(timer);
+  }, [banner, clearBanner]);
+
+  if (!banner) return null;
+  return (
+    <div
+      key={banner.key}
+      className="pointer-events-none absolute inset-x-0 top-[22%] z-30 flex justify-center px-3 md:left-[392px]"
+    >
+      <button
+        type="button"
+        role="status"
+        className="panel pop pointer-events-auto flex items-center gap-3 px-4 py-3 text-left"
+        onClick={() => {
+          clearBanner();
+          useUi.getState().openPanel("badges");
+        }}
+      >
+        <span className="badge-shine grid size-12 shrink-0 place-items-center border-[3px] border-ink bg-want text-[#2a2238]">
+          <PixelIcon name={banner.icon} className="size-[28px]" />
+        </span>
+        <span>
+          <span className="block text-sm text-mute">{banner.title}</span>
+          <span className="block text-lg font-bold leading-tight">{banner.text}</span>
+        </span>
+      </button>
     </div>
   );
 }
