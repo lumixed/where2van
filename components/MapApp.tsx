@@ -9,6 +9,7 @@ import PickForUs from "./PickForUs";
 import PlaceCard from "./PlaceCard";
 import PlaceForm from "./PlaceForm";
 import PlacesPanel from "./PlacesPanel";
+import Reminders from "./Reminders";
 
 export default function MapApp() {
   const form = useUi((s) => s.form);
@@ -22,6 +23,7 @@ export default function MapApp() {
       <MapView />
       <TopBar />
       <BottomBar />
+      <Reminders />
       <PlacesPanel />
       <PlaceCard />
       {pickMode && <PickBanner />}
