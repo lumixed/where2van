@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { findDuplicate } from "@/lib/duplicates";
 import { searchPlaces, type GeoResult } from "@/lib/geocode";
 import { usePlaces, type PlaceInput } from "@/lib/store";
-import { CATEGORIES, CATEGORY_LABEL } from "@/lib/types";
+import { CATEGORIES, CATEGORY_LABEL, STATUS_LABEL } from "@/lib/types";
 import { useUi, type Form } from "@/lib/ui";
 import { PixelIcon } from "./pixel";
 import Sheet from "./Sheet";
@@ -23,6 +24,7 @@ export default function PlaceForm({ form }: { form: Form }) {
 type Phase = "idle" | "loading" | "done" | "error";
 
 function Finder() {
+  const places = usePlaces((s) => s.places);
   const { setDraft, startPick } = useUi.getState();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<GeoResult[]>([]);
@@ -107,10 +109,13 @@ function Finder() {
                 className="flex w-full items-center gap-3 px-2 py-2 text-left hover:bg-shade"
               >
                 <PixelIcon name={hit.category} className="size-[21px]" />
-                <span className="min-w-0">
+                <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold">{hit.name}</span>
                   <span className="block truncate text-sm text-mute">{hit.address}</span>
                 </span>
+                {findDuplicate(places, hit) && (
+                  <span className="shrink-0 text-sm font-semibold text-sky">On the map</span>
+                )}
               </button>
             </li>
           ))}
@@ -128,7 +133,10 @@ function Finder() {
 function Details({ form, draft }: { form: Form; draft: PlaceInput }) {
   const { patchDraft, setDraft, closeForm, select, showToast } = useUi.getState();
   const { addPlace, updatePlace } = usePlaces.getState();
+  const places = usePlaces((s) => s.places);
   const name = draft.name.trim();
+  // Adding something that is already there is usually a slip, not a choice.
+  const twin = form.mode === "add" ? findDuplicate(places, draft) : undefined;
 
   function save(e: React.FormEvent) {
     e.preventDefault();
@@ -201,12 +209,31 @@ function Details({ form, draft }: { form: Form; draft: PlaceInput }) {
         />
       </label>
 
+      {twin && (
+        <div role="status" className="border-[3px] border-sky bg-white/60 px-3 py-2">
+          <p>
+            <span className="font-bold">{twin.name}</span> is already on the map, under{" "}
+            {STATUS_LABEL[twin.status]}.
+          </p>
+          <button
+            type="button"
+            className="mt-1 font-semibold text-sky underline"
+            onClick={() => {
+              closeForm();
+              select(twin.id);
+            }}
+          >
+            Show me that one
+          </button>
+        </div>
+      )}
+
       <div className="flex gap-2">
         <button type="button" className="btn px-5" onClick={closeForm}>
           Cancel
         </button>
         <button type="submit" className="btn btn-want flex-1 py-3" disabled={!name}>
-          {form.mode === "edit" ? "Save changes" : "Save to the map"}
+          {form.mode === "edit" ? "Save changes" : twin ? "Add it anyway" : "Save to the map"}
         </button>
       </div>
     </form>
