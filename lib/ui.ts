@@ -7,7 +7,7 @@ export type Form =
   | { mode: "add"; draft: PlaceInput | null }
   | { mode: "edit"; id: string; draft: PlaceInput };
 
-export type PanelView = "places" | "calendar" | "memories";
+export type PanelView = "places" | "calendar" | "memories" | "badges";
 
 export interface Toast {
   key: number;

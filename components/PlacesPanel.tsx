@@ -1,5 +1,6 @@
 "use client";
 
+import type { SpriteName } from "@/lib/pixel";
 import { usePlaces } from "@/lib/store";
 import {
   CATEGORIES,
@@ -11,16 +12,18 @@ import {
   type StatusFilter,
 } from "@/lib/types";
 import { useUi, type PanelView } from "@/lib/ui";
+import BadgesView from "./BadgesView";
 import { Tally } from "./Bars";
 import CalendarView from "./CalendarView";
 import MemoryBook from "./MemoryBook";
 import { cn, Logo, PixelIcon } from "./pixel";
 import PlaceRow from "./PlaceRow";
 
-const VIEWS: { value: PanelView; label: string; icon: "list" | "calendar" | "heart" }[] = [
+const VIEWS: { value: PanelView; label: string; icon: SpriteName }[] = [
   { value: "places", label: "Places", icon: "list" },
   { value: "calendar", label: "Calendar", icon: "calendar" },
   { value: "memories", label: "Memories", icon: "heart" },
+  { value: "badges", label: "Badges", icon: "trophy" },
 ];
 
 const STATUS_TABS: { value: StatusFilter; label: string }[] = [
@@ -72,7 +75,7 @@ export default function PlacesPanel() {
               <span className="sr-only">Close</span>
             </button>
           </div>
-          <div className="mt-3 grid grid-cols-3 gap-1.5" role="tablist" aria-label="View">
+          <div className="mt-3 grid grid-cols-4 gap-1.5" role="tablist" aria-label="View">
             {VIEWS.map((tab) => (
               <button
                 key={tab.value}
@@ -80,7 +83,7 @@ export default function PlacesPanel() {
                 role="tab"
                 aria-selected={view === tab.value}
                 onClick={() => openPanel(tab.value)}
-                className="btn gap-1.5 px-1 text-sm"
+                className="btn chip"
               >
                 <PixelIcon name={tab.icon} />
                 {tab.label}
@@ -92,6 +95,7 @@ export default function PlacesPanel() {
         {view === "places" && <PlacesList />}
         {view === "calendar" && <CalendarView />}
         {view === "memories" && <MemoryBook />}
+        {view === "badges" && <BadgesView />}
 
         <footer className="grid grid-cols-2 gap-2 border-t-[3px] border-ink p-3">
           <button type="button" className="btn py-3" onClick={openPicker}>

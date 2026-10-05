@@ -22,6 +22,10 @@ Then open http://localhost:3000.
 - **Memories**: everything you've done, newest first, like a scrapbook.
 - **Photos**: add pictures to a place you've been. They are shrunk before
   upload, so they stay small.
+- **Badges and stats**: how many places, photos and neighbourhoods so far,
+  with badges to earn along the way.
+- **Reminders**: a heads-up for plans today and tomorrow, plans that slipped
+  past, and the to-do that has waited longest.
 - **Pick for us**: can't decide? It picks a random to-do, by category or from
   the ones closest to you.
 
@@ -53,5 +57,5 @@ Then open http://localhost:3000.
 ## Roadmap
 
 1. A rating each, with her face
-2. Reminders for plans, badges and stats
+2. Install as a phone app
 3. Landmarks and sound
