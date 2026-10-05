@@ -417,16 +417,3 @@ export function iconSvg(name: SpriteName): string {
     `<path d="${spritePath(SPRITES[name])}"/></svg>`
   );
 }
-
-/**
- * A multi-colour sprite as SVG markup. Each character of `rows` names a
- * colour in `colors`; anything else is see-through.
- */
-export function paintedSvg(rows: readonly string[], colors: Record<string, string>): string {
-  const used = [...new Set(rows.join(""))].filter((letter) => colors[letter]);
-  const paths = used.map((letter) => {
-    const mask = rows.map((row) => [...row].map((c) => (c === letter ? "#" : ".")).join(""));
-    return `<path fill="${colors[letter]}" d="${spritePath(mask)}"/>`;
-  });
-  return svg(Math.max(...rows.map((row) => row.length)), rows.length, paths.join(""));
-}

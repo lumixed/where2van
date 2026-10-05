@@ -15,7 +15,6 @@ import { usePlaces } from "@/lib/store";
 import { matchesFilter, STATUS_LABEL, type Place } from "@/lib/types";
 import { useUi } from "@/lib/ui";
 import { useWorld } from "@/lib/world";
-import { useLandmarks } from "./useLandmarks";
 import { useLife } from "./useLife";
 import { WorldControl } from "./worldControl";
 
@@ -128,8 +127,6 @@ export default function MapView() {
   }, []);
 
   useLife(mapRef);
-  // Before the pins, so that our own places always sit on top of a landmark.
-  useLandmarks(mapRef);
 
   useEffect(() => {
     const map = mapRef.current;

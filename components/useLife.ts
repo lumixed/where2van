@@ -6,24 +6,17 @@ import { MAP_PIXEL } from "@/lib/mapStyle";
 import { ROUTES, type LngLat, type Route } from "@/lib/transit";
 import { useWorld, type Phase, type Weather } from "@/lib/world";
 
-// Everything that moves on the map but is not a place: trains, ferries,
-// seagulls, clouds, rain and snow. It is all painted on one small canvas
+// Everything that moves on the map but is not a place: ferries, seagulls,
+// clouds, rain and snow. It is all painted on one small canvas
 // laid over the map, at the map's own chunky pixel size, underneath the pins.
 
 const INK = "#2a2238";
 /** Frames a second. Pixel art does not need more, and it keeps phones cool. */
 const FPS = 20;
-/** Below this zoom the city is too small for trains and birds to read. */
+/** Below this zoom the city is too small for boats and birds to read. */
 const MIN_ZOOM = 10.5;
-/**
- * A train is drawn at its real length (about 70 m for a SkyTrain), but never
- * shorter than this many map pixels, or it would vanish when zoomed out.
- */
-const TRAIN_METRES = 70;
-const TRAIN_PIXELS = 16;
-const TRAIN_CARS = 3;
 
-// ---- vehicles: trains and ferries that shuttle along a fixed route ----
+// ---- ferries that shuttle back and forth along a fixed route ----
 
 interface Vehicle {
   route: Route;
@@ -51,11 +44,8 @@ function vehicle(route: Route, speed: number, dwell: number, start: number): Veh
   return { route, marks, length: marks[marks.length - 1], speed, dwell, start };
 }
 
-const VEHICLES: Vehicle[] = ROUTES.flatMap((route) =>
-  route.kind === "train"
-    ? // Two trains a line, half a cycle apart, so they pass each other.
-      [vehicle(route, 70, 6, 0), vehicle(route, 70, 6, 0.5)]
-    : [vehicle(route, route.id === "seabus" ? 45 : 14, 8, 0)],
+const VEHICLES: Vehicle[] = ROUTES.map((route) =>
+  vehicle(route, route.id === "seabus" ? 45 : 14, 8, 0),
 );
 
 /** The point `distance` metres along a vehicle's route. */
@@ -99,19 +89,20 @@ function scatter(count: number, width: number, height: number): Drifter[] {
   }));
 }
 
-/** Short-lived puffs and sparkles, set off by tapping a landmark. */
+/** A short-lived shower of hearts, for when a place is marked as done. */
 interface Burst {
   at: LngLat;
-  kind: "steam" | "sparkle";
   born: number;
 }
 
 const bursts: Burst[] = [];
 
-/** Plays a small effect on the map at a place, for a couple of seconds. */
-export function burst(at: LngLat, kind: Burst["kind"]) {
-  bursts.push({ at, kind, born: performance.now() / 1000 });
+/** Sends a few pixel hearts floating up from a spot on the map. */
+export function burst(at: LngLat) {
+  bursts.push({ at, born: performance.now() / 1000 });
 }
+
+const HEART = [".#.#.", "#####", "#####", ".###.", "..#.."];
 
 const CLOUD_COLOR: Record<Phase, string> = {
   dawn: "rgb(255 226 208 / 0.82)",
@@ -173,52 +164,23 @@ export function useLife(mapRef: RefObject<MapLibreMap | null>) {
       ctx.fillRect(Math.round(x), Math.round(y), w, h);
     };
 
-    function drawVehicles(now: number, zoom: number) {
+    function drawBoats(now: number, zoom: number) {
       const metresPerPixel =
         ((78271.5 * Math.cos((map!.getCenter().lat * Math.PI) / 180)) / 2 ** zoom) * MAP_PIXEL;
       for (const v of VEHICLES) {
         const { distance, forward } = progress(v, now);
-        if (v.route.kind === "boat") {
-          const p = spot(along(v, distance));
-          if (!onScreen(p)) continue;
-          const small = v.route.id !== "seabus";
-          const w = small ? 4 : 7;
-          // A light wake trails behind while it is under way.
-          if (distance > 0 && distance < v.length) {
-            const behind = spot(along(v, distance + (forward ? -1 : 1) * metresPerPixel * (w - 1)));
-            box(behind.x, behind.y, 2, 1, "rgb(255 255 255 / 0.7)");
-          }
-          box(p.x - (w >> 1), p.y - 2, w, 4, INK);
-          box(p.x - (w >> 1) + 1, p.y - 1, w - 2, 1, "#ffffff");
-          box(p.x - (w >> 1) + 1, p.y, w - 2, 1, v.route.color);
-          continue;
+        const p = spot(along(v, distance));
+        if (!onScreen(p)) continue;
+        const w = v.route.id === "seabus" ? 7 : 4;
+        // A light wake trails behind while it is under way.
+        if (distance > 0 && distance < v.length) {
+          const behind = spot(along(v, distance + (forward ? -1 : 1) * metresPerPixel * (w - 1)));
+          box(behind.x, behind.y, 2, 1, "rgb(255 255 255 / 0.7)");
         }
-        drawTrain(v, distance, forward, metresPerPixel);
+        box(p.x - (w >> 1), p.y - 2, w, 4, INK);
+        box(p.x - (w >> 1) + 1, p.y - 1, w - 2, 1, "#ffffff");
+        box(p.x - (w >> 1) + 1, p.y, w - 2, 1, v.route.color);
       }
-    }
-
-    /**
-     * A train is one long body that bends with the track: white, with a
-     * stripe in the line's colour, thin gaps between its cars and a
-     * headlight at the front.
-     */
-    function drawTrain(v: Vehicle, distance: number, forward: boolean, metresPerPixel: number) {
-      const length = Math.max(TRAIN_METRES, TRAIN_PIXELS * metresPerPixel);
-      // At the ends of the line the whole train stays on the track.
-      const head = forward ? Math.max(distance, length) : Math.min(distance, v.length - length);
-      const steps = Math.round(length / metresPerPixel);
-      const body = Array.from({ length: steps + 1 }, (_, i) =>
-        spot(along(v, head + (forward ? -1 : 1) * (i / steps) * length)),
-      );
-      if (!body.some((p) => onScreen(p))) return;
-
-      const carLength = Math.round(steps / TRAIN_CARS);
-      const isGap = (i: number) => i > 0 && i < steps && i % carLength === 0;
-      // Three passes, so one part's outline never eats into its neighbour.
-      for (const p of body) box(p.x - 2, p.y - 2, 4, 4, INK);
-      body.forEach((p, i) => isGap(i) || box(p.x - 1, p.y - 1, 2, 2, "#ffffff"));
-      body.forEach((p, i) => isGap(i) || box(p.x, p.y, 1, 1, v.route.color));
-      box(body[0].x - 1, body[0].y - 1, 2, 2, "#ffe58f");
     }
 
     function drawGulls(now: number) {
@@ -301,20 +263,21 @@ export function useLife(mapRef: RefObject<MapLibreMap | null>) {
       for (let i = bursts.length - 1; i >= 0; i--) {
         const b = bursts[i];
         const age = now - b.born;
-        if (age > 2) {
+        if (age > 1.8) {
           bursts.splice(i, 1);
           continue;
         }
         const p = spot(b.at);
-        for (let n = 0; n < 6; n++) {
-          const t = age * 1.2 + n * 0.21;
-          if (b.kind === "steam") {
-            const size = 2 + Math.floor(t * 2);
-            box(p.x - 1 + Math.sin(n * 2.1 + t * 3) * 3, p.y - 14 - t * 9 - n, size, size, `rgb(255 255 255 / ${0.85 - age * 0.4})`);
-          } else if (Math.floor(now * 8 + n) % 2 === 0) {
-            const angle = n * 1.05 + age;
-            box(p.x + Math.cos(angle) * (6 + n), p.y - 7 + Math.sin(angle) * (6 + n), 1, 1, n % 2 ? "#fff6a8" : "#ffffff");
-          }
+        // Seven hearts fan out and drift up, each a touch later than the last.
+        for (let n = 0; n < 7; n++) {
+          const t = age - n * 0.06;
+          if (t < 0) continue;
+          const x = p.x - 2 + (n - 3) * 5 * Math.min(1, t * 2);
+          const y = p.y - 18 - t * 22 + (n % 2) * 4;
+          ctx.fillStyle = t > 1.3 ? "rgb(226 88 77 / 0.5)" : "#e2584d";
+          HEART.forEach((row, dy) =>
+            [...row].forEach((cell, dx) => cell === "#" && ctx.fillRect(Math.round(x) + dx, Math.round(y) + dy, 1, 1)),
+          );
         }
       }
     }
@@ -331,7 +294,7 @@ export function useLife(mapRef: RefObject<MapLibreMap | null>) {
       ctx.clearRect(0, 0, width, height);
 
       if (!still && zoom >= MIN_ZOOM) {
-        drawVehicles(now, zoom);
+        drawBoats(now, zoom);
         if (phase !== "night") drawGulls(now);
       }
       drawBursts(now);

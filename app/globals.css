@@ -184,7 +184,7 @@ button:disabled {
   image-rendering: pixelated;
 }
 
-/* The layer of trains, birds and weather, painted at the same chunky scale. */
+/* The layer of boats, birds and weather, painted at the same chunky scale. */
 .life {
   position: absolute;
   inset: 0;
@@ -234,78 +234,6 @@ button:disabled {
 .pin:hover .pin-art,
 .pin[data-selected="true"] .pin-art {
   scale: 1.34;
-}
-
-/* ---- Landmarks: pixel buildings on the map ---- */
-
-.landmark {
-  display: block;
-  padding: 0;
-  border: 0;
-  background: none;
-}
-
-.landmark[hidden] {
-  display: none;
-}
-
-.landmark-art {
-  display: block;
-  transform-origin: 50% 100%;
-  filter: drop-shadow(3px 3px 0 rgb(42 34 56 / 0.3));
-}
-
-.landmark-art svg {
-  display: block;
-  width: 100%;
-}
-
-.landmark:hover .landmark-art {
-  scale: 1.1;
-}
-
-.landmark.poked .landmark-art {
-  animation: poke 0.45s steps(4);
-}
-
-@keyframes poke {
-  25% {
-    translate: 0 -9px;
-  }
-  50% {
-    translate: 0 0;
-  }
-  75% {
-    translate: 0 -3px;
-  }
-}
-
-/* Their speech bubble, in the same look as every other box. */
-.landmark-popup .maplibregl-popup-content {
-  padding: 0.6rem 0.75rem 0.75rem;
-  border: 3px solid var(--color-ink);
-  border-radius: 0;
-  background: var(--color-paper);
-  box-shadow: 5px 5px 0 rgb(42 34 56 / 0.4);
-  color: var(--color-ink);
-  font-family: inherit;
-  font-size: 0.875rem;
-  line-height: 1.35;
-}
-
-.landmark-popup .maplibregl-popup-tip {
-  display: none;
-}
-
-.landmark-name {
-  margin-bottom: 0.15rem;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.landmark-bubble .btn {
-  margin-top: 0.6rem;
-  width: 100%;
 }
 
 /* Places still to do hop, one pixel at a time. */
@@ -399,7 +327,6 @@ button:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landmark.poked .landmark-art,
   .pin-art,
   .pop,
   .blink {

@@ -22,24 +22,15 @@ function beep(frequency: number, start: number, length: number, type: Oscillator
 }
 
 const SOUNDS = {
-  /** A plain blip, for a tap that does nothing special. */
-  tap: () => beep(880, 0, 0.07),
-  /** The steam clock's whistle: two notes sounding together. */
-  toot: () => {
-    beep(523, 0, 0.5, "triangle", 0.08);
-    beep(659, 0, 0.5, "triangle", 0.06);
-    beep(523, 0.6, 0.35, "triangle", 0.08);
-    beep(784, 0.6, 0.35, "triangle", 0.06);
+  /** A plain blip, for pressing a button. */
+  tap: () => beep(880, 0, 0.05, "square", 0.03),
+  /** A place marked as done: a short rising run. */
+  done: () => [523, 659, 784, 1047].forEach((note, i) => beep(note, i * 0.08, 0.12)),
+  /** A badge earned: the same run, held at the top. */
+  badge: () => {
+    [523, 659, 784].forEach((note, i) => beep(note, i * 0.09, 0.1));
+    beep(1047, 0.27, 0.4);
   },
-  /** Canada Place's horns play the opening of "O Canada" at noon. */
-  horn: () => {
-    beep(392, 0, 0.5, "sawtooth", 0.05);
-    beep(466, 0.5, 0.38, "sawtooth", 0.05);
-    beep(466, 0.88, 0.14, "sawtooth", 0.05);
-    beep(311, 1.02, 0.75, "sawtooth", 0.05);
-  },
-  /** A quick rising sparkle. */
-  sparkle: () => [1047, 1319, 1568, 2093].forEach((note, i) => beep(note, i * 0.07, 0.1)),
 };
 
 /** Plays a sound effect, unless sounds are switched off. */

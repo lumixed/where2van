@@ -32,11 +32,8 @@ Then open http://localhost:3000.
   past, and the to-do that has waited longest.
 - **A living map**: it follows Vancouver's real time of day (golden at sunrise
   and sunset, lit up at night) and its real weather (rain, snow, fog, clouds).
-  SkyTrains run on their lines, the SeaBus and Aquabus cross the water, and
-  seagulls drift over. Two buttons by the zoom pin the look and mute sounds.
-- **Landmarks**: twelve Vancouver landmarks drawn in pixel art. Tap one for a
-  fact, and to add it to our places; the steam clock whistles and Canada
-  Place sounds its horns.
+  The SeaBus and an Aquabus cross the water, and seagulls drift over. Two
+  buttons by the zoom pin the look and mute sounds.
 - **Pick for us**: can't decide? It picks a random to-do, by category or from
   the ones closest to you.
 
@@ -48,11 +45,9 @@ Then open http://localhost:3000.
 - **Time and weather**: `lib/world.ts` keeps Vancouver's clock and reads the
   forecast from Open-Meteo (free, no key). The map's colours come from one of
   three palettes in `lib/mapStyle.ts`.
-- **Moving things**: `components/useLife.ts` paints trains, ferries, birds and
-  weather on a small canvas over the map. The tracks in `lib/transit.ts` were
+- **Moving things**: `components/useLife.ts` paints ferries, birds and weather
+  on a small canvas over the map. The ferry routes in `lib/transit.ts` were
   traced from OpenStreetMap.
-- **Landmarks**: listed with their sprites in `lib/landmarks.ts`; the sounds in
-  `lib/sound.ts` are generated on the spot, with no audio files.
 - **Pixel sprites**: the markers, icons and stars are small bitmaps in
   `lib/pixel.ts`.
 - **Place search**: Photon, a free search service on OpenStreetMap data
