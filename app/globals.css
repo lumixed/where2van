@@ -206,8 +206,109 @@ button:disabled {
   background: none;
 }
 
-.pin[hidden] {
+.pin[hidden],
+.pin[data-grouped="true"] {
   display: none;
+}
+
+/* The map library sets its own font on everything inside the map. */
+.cluster,
+.pin-bubble {
+  font-family: var(--font-digits), var(--font-pixelify), sans-serif;
+}
+
+/* Several places too close to tell apart: one tile with their number. */
+.cluster {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #2a2238;
+  background: #fff6df;
+  /* Dark on a light tile whatever the panels around the map look like. */
+  color: #2a2238;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 3px 3px 0 rgb(42 34 56 / 0.35);
+}
+
+.cluster[data-kind="want"] {
+  background: var(--color-want);
+}
+
+.cluster[data-kind="done"] {
+  background: var(--color-been);
+}
+
+.cluster:hover {
+  scale: 1.12;
+}
+
+/* The preview bubble over a pin, in the same look as every other box. */
+.pin-popup .maplibregl-popup-content {
+  padding: 0;
+  border: 3px solid var(--color-ink);
+  border-radius: 0;
+  background: var(--color-paper);
+  box-shadow: 5px 5px 0 rgb(42 34 56 / 0.4);
+}
+
+.pin-popup .maplibregl-popup-tip {
+  display: none;
+}
+
+.pin-bubble {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem 0.5rem 0.5rem;
+  text-align: left;
+  color: var(--color-ink);
+}
+
+.pin-bubble:hover {
+  background: var(--color-shade);
+}
+
+.pin-bubble img {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border: 3px solid var(--color-ink);
+  object-fit: cover;
+}
+
+.pin-bubble-text {
+  display: grid;
+  min-width: 0;
+  padding-left: 0.2rem;
+}
+
+.pin-bubble-name {
+  overflow: hidden;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-bubble-about,
+.pin-bubble-hint {
+  color: var(--color-mute);
+  font-size: 0.8125rem;
+}
+
+.pin-bubble-stars {
+  display: flex;
+  gap: 2px;
+  margin: 2px 0;
+}
+
+.pin-bubble-stars svg {
+  width: 16px;
+  height: 16px;
 }
 
 .pin[data-selected="true"] {
@@ -234,6 +335,37 @@ button:disabled {
 .pin:hover .pin-art,
 .pin[data-selected="true"] .pin-art {
   scale: 1.34;
+}
+
+/* A place that has just been marked done lands like a rubber stamp. */
+.pin.stamped .pin-art {
+  animation: stamp 0.6s steps(6);
+}
+
+@keyframes stamp {
+  0% {
+    scale: 2;
+    rotate: -12deg;
+  }
+  45% {
+    scale: 0.85;
+    rotate: 0deg;
+  }
+  70% {
+    scale: 1.12;
+  }
+}
+
+/* A newly earned badge catches the light for a moment. */
+.badge-shine {
+  animation: shine 0.9s steps(3) 2;
+}
+
+@keyframes shine {
+  50% {
+    background: #fff3b8;
+    scale: 1.12;
+  }
 }
 
 /* Places still to do hop, one pixel at a time. */
@@ -327,6 +459,7 @@ button:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .badge-shine,
   .pin-art,
   .pop,
   .blink {
