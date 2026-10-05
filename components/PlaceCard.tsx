@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useCar } from "@/lib/car";
 import { dayKey, formatDay, formatPlan } from "@/lib/dates";
 import { usePlaces } from "@/lib/store";
 import { CATEGORY_LABEL, STATUS_LABEL, type Place } from "@/lib/types";
@@ -125,27 +124,17 @@ function Details({ place, setMode }: { place: Place; setMode: (mode: Mode) => vo
             We went here!
           </button>
         )}
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="btn flex-1"
-            onClick={() => useCar.getState().driveTo(place)}
-          >
-            <PixelIcon name="car" />
-            Drive there
+        {done ? (
+          <button type="button" className="btn w-full" onClick={() => setMode("memory")}>
+            <PixelIcon name="activity" />
+            {place.rating ? "Edit rating" : "Rate it"}
           </button>
-          {done ? (
-            <button type="button" className="btn flex-1" onClick={() => setMode("memory")}>
-              <PixelIcon name="activity" />
-              {place.rating ? "Edit rating" : "Rate it"}
-            </button>
-          ) : (
-            <button type="button" className="btn flex-1" onClick={() => setMode("plan")}>
-              <PixelIcon name="calendar" />
-              {place.plannedFor ? "Change date" : "Plan a date"}
-            </button>
-          )}
-        </div>
+        ) : (
+          <button type="button" className="btn w-full" onClick={() => setMode("plan")}>
+            <PixelIcon name="calendar" />
+            {place.plannedFor ? "Change date" : "Plan a date"}
+          </button>
+        )}
         <div className="flex gap-2">
           <a className="btn flex-1" href={mapsLink(place)} target="_blank" rel="noreferrer">
             <PixelIcon name="arrow" />

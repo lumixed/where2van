@@ -9,13 +9,11 @@ import {
   setWorkerUrl,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useCar } from "@/lib/car";
 import { MAP_PIXEL, pixelStyle } from "@/lib/mapStyle";
 import { pinSvg } from "@/lib/pixel";
 import { usePlaces } from "@/lib/store";
 import { matchesFilter, STATUS_LABEL, type Place } from "@/lib/types";
 import { useUi } from "@/lib/ui";
-import { useCarOnMap } from "./useCarOnMap";
 
 // The worker file is copied into /public by the `copy:map-worker` script,
 // because the bundler cannot find it next to the library on its own.
@@ -93,11 +91,10 @@ export default function MapView() {
       maxPitch: 0,
       dragRotate: false,
       touchPitch: false,
-      // The arrow keys drive the car instead of panning the map.
-      keyboard: false,
       attributionControl: { compact: true },
     });
     map.touchZoomRotate.disableRotation();
+    map.keyboard.disableRotation();
     map.addControl(new NavigationControl({ showCompass: false }), "bottom-right");
     map.addControl(
       new GeolocateControl({
@@ -119,8 +116,6 @@ export default function MapView() {
       draftMarker.current = null;
     };
   }, []);
-
-  useCarOnMap(mapRef);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -157,9 +152,6 @@ export default function MapView() {
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !selectedId) return;
-    // While the car is being driven, the camera stays with the car.
-    const car = useCar.getState();
-    if (car.driving && (car.route || car.steer.x || car.steer.y)) return;
     const place = usePlaces.getState().places.find((p) => p.id === selectedId);
     if (!place) return;
     map.flyTo({

@@ -19,18 +19,14 @@ Then open http://localhost:3000.
 - **To do and Done lists**, filterable by category.
 - **Plan a date** for a to-do and see it on the calendar.
 - **Mark a place as done** with the day you went, a star rating and a note.
-- **Drive the car** around the map with the arrow keys, WASD or the on-screen
-  pad, or press "Drive there" on a place to have it drive along the roads.
 
 ## How it works
 
 - **Map**: MapLibre GL, drawn at low resolution and scaled up so it looks like
   pixel art (`lib/mapStyle.ts`). Map data comes from OpenFreeMap and needs no
   account or key.
-- **Pixel sprites**: the markers, icons, stars and car are small bitmaps in
+- **Pixel sprites**: the markers, icons and stars are small bitmaps in
   `lib/pixel.ts`.
-- **Car**: `lib/car.ts` holds its state and `components/useCarOnMap.ts` runs
-  it. Driving directions come from OSRM's free public server.
 - **Place search**: Photon, a free search service on OpenStreetMap data
   (`lib/geocode.ts`).
 - **Shared data**: Supabase. Places live in one shared table

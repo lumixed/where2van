@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { startSync } from "@/lib/sync";
 import { useUi } from "@/lib/ui";
 import { BottomBar, PickBanner, Toast, TopBar } from "./Bars";
-import DrivePad, { NearPrompt } from "./DrivePad";
 import MapView from "./MapView";
 import PlaceCard from "./PlaceCard";
 import PlaceForm from "./PlaceForm";
@@ -21,8 +20,6 @@ export default function MapApp() {
       <MapView />
       <TopBar />
       <BottomBar />
-      <DrivePad />
-      <NearPrompt />
       <PlacesPanel />
       <PlaceCard />
       {pickMode && <PickBanner />}

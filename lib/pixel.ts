@@ -137,33 +137,6 @@ export const SPRITES = {
     "#.#.#.#",
     "#######",
   ],
-  car: [
-    ".......",
-    "..###..",
-    ".#####.",
-    "#######",
-    "#######",
-    ".#...#.",
-    ".......",
-  ],
-  up: [
-    "...#...",
-    "..###..",
-    ".#####.",
-    "#######",
-    "..###..",
-    "..###..",
-    "..###..",
-  ],
-  down: [
-    "..###..",
-    "..###..",
-    "..###..",
-    "#######",
-    ".#####.",
-    "..###..",
-    "...#...",
-  ],
   left: [
     "...#...",
     "..##...",
@@ -195,22 +168,14 @@ export const SPRITES = {
 
 export type SpriteName = keyof typeof SPRITES;
 
-/**
- * Turns sprite rows into an SVG path, one rectangle per run of pixels.
- * `pixel` picks which character counts as filled, for multi-colour sprites.
- */
-export function spritePath(
-  rows: readonly string[],
-  ox = 0,
-  oy = 0,
-  pixel = "#",
-): string {
+/** Turns sprite rows into an SVG path, one rectangle per run of pixels. */
+export function spritePath(rows: readonly string[], ox = 0, oy = 0): string {
   let d = "";
   rows.forEach((row, y) => {
     for (let x = 0; x < row.length; x++) {
-      if (row[x] !== pixel) continue;
+      if (row[x] !== "#") continue;
       let end = x;
-      while (row[end + 1] === pixel) end++;
+      while (row[end + 1] === "#") end++;
       const run = end - x + 1;
       d += `M${ox + x} ${oy + y}h${run}v1h-${run}z`;
       x = end;
@@ -261,36 +226,6 @@ export function pinSvg(
         ? `<path fill="${INK}" d="${BADGE_OUTLINE}"/>` +
           `<path fill="${HEART}" d="${spritePath(MINI_HEART, BADGE.x, BADGE.y)}"/>`
         : ""),
-  );
-}
-
-// Seen from above, facing north. K outline, R body, D shade, W glass, Y lights.
-const CAR = [
-  "..KKKKK..",
-  ".KYRRRYK.",
-  "KKRRRRRKK",
-  "KKRWWWRKK",
-  ".KRWWWRK.",
-  ".KRRRRRK.",
-  ".KRRRRRK.",
-  ".KRWWWRK.",
-  "KKRWWWRKK",
-  "KKRRRRRKK",
-  ".KRRRRRK.",
-  ".KDDDDDK.",
-  "..KKKKK..",
-];
-const CAR_COLORS = { K: INK, R: HEART, D: "#b23f38", W: "#cfeaff", Y: "#ffe58f" };
-
-export const CAR_SIZE = { width: CAR[0].length, height: CAR.length };
-
-export function carSvg(): string {
-  return svg(
-    CAR_SIZE.width,
-    CAR_SIZE.height,
-    Object.entries(CAR_COLORS)
-      .map(([pixel, color]) => `<path fill="${color}" d="${spritePath(CAR, 0, 0, pixel)}"/>`)
-      .join(""),
   );
 }
 

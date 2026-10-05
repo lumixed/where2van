@@ -211,25 +211,6 @@ button:disabled {
   scale: 1.34;
 }
 
-.car {
-  z-index: 6;
-  display: block;
-  width: 27px;
-  padding: 0;
-  border: 0;
-  background: none;
-}
-
-.car-art {
-  display: block;
-  filter: drop-shadow(3px 3px 0 rgb(42 34 56 / 0.35));
-}
-
-.car-art svg {
-  display: block;
-  width: 100%;
-}
-
 /* Places still to do hop, one pixel at a time. */
 .pin[data-status="want"] .pin-art,
 .pin[data-status="draft"] .pin-art {

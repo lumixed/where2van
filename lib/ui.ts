@@ -25,8 +25,6 @@ interface UiState {
   panelOpen: boolean;
   status: StatusFilter;
   category: CategoryFilter;
-  /** The place the car is parked next to, if any. */
-  nearId: string | null;
   toast: Toast | null;
   select: (id: string | null) => void;
   openAdd: () => void;
@@ -53,7 +51,6 @@ export const useUi = create<UiState>()((set, get) => ({
   panelOpen: false,
   status: "all",
   category: "all",
-  nearId: null,
   toast: null,
   select: (id) => set({ selectedId: id, panelOpen: id ? false : get().panelOpen }),
   openAdd: () =>
