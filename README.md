@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Where2Van
 
-## Getting Started
+A map of Vancouver for the two of us: the places we want to eat at and
+visit, and the ones we've been to. Drawn like a pixel-art game world.
 
-First, run the development server:
+## Run it
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What you can do
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Add places** by searching or dropping a pin, in seven categories: eat,
+  café, activity, concert, outdoors, shopping and other.
+- **To do and Done lists**, filterable by category.
+- **Plan a date** for a to-do and see it on the calendar.
+- **Mark a place as done** with the day you went, a star rating and a note.
+- **Drive the car** around the map with the arrow keys, WASD or the on-screen
+  pad, or press "Drive there" on a place to have it drive along the roads.
 
-## Learn More
+## How it works
 
-To learn more about Next.js, take a look at the following resources:
+- **Map**: MapLibre GL, drawn at low resolution and scaled up so it looks like
+  pixel art (`lib/mapStyle.ts`). Map data comes from OpenFreeMap and needs no
+  account or key.
+- **Pixel sprites**: the markers, icons, stars and car are small bitmaps in
+  `lib/pixel.ts`.
+- **Car**: `lib/car.ts` holds its state and `components/useCarOnMap.ts` runs
+  it. Driving directions come from OSRM's free public server.
+- **Place search**: Photon, a free search service on OpenStreetMap data
+  (`lib/geocode.ts`).
+- **Shared data**: Supabase. Places live in one shared table
+  (`supabase/schema.sql`). `lib/sync.ts` loads them when the app opens and
+  listens for live changes; `lib/store.ts` sends every change. Without keys
+  in `.env.local` the app still runs, keeping everything in the browser.
+- **No sign-in**: anyone who has the website's link can see and change the
+  map, so the link stays between the two of us.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Setting up sync
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. In Supabase, open the SQL Editor, paste `supabase/schema.sql` and run it.
+2. Copy the project URL and the publishable key into `.env.local`
+   (see `.env.example`). Never the secret key.
 
-## Deploy on Vercel
+## Roadmap
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Put it online
+2. A rating each, with her face; photos; "pick for us"
+3. Landmarks and sound
