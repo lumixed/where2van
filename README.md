@@ -30,6 +30,10 @@ Then open http://localhost:3000.
   with badges to earn along the way.
 - **Reminders**: a heads-up for plans today and tomorrow, plans that slipped
   past, and the to-do that has waited longest.
+- **A living map**: it follows Vancouver's real time of day (golden at sunrise
+  and sunset, lit up at night) and its real weather (rain, snow, fog, clouds).
+  SkyTrains run on their lines, the SeaBus and Aquabus cross the water, and
+  seagulls drift over. Two buttons by the zoom pin the look and mute sounds.
 - **Pick for us**: can't decide? It picks a random to-do, by category or from
   the ones closest to you.
 
@@ -38,6 +42,12 @@ Then open http://localhost:3000.
 - **Map**: MapLibre GL, drawn at low resolution and scaled up so it looks like
   pixel art (`lib/mapStyle.ts`). Map data comes from OpenFreeMap and needs no
   account or key.
+- **Time and weather**: `lib/world.ts` keeps Vancouver's clock and reads the
+  forecast from Open-Meteo (free, no key). The map's colours come from one of
+  three palettes in `lib/mapStyle.ts`.
+- **Moving things**: `components/useLife.ts` paints trains, ferries, birds and
+  weather on a small canvas over the map. The tracks in `lib/transit.ts` were
+  traced from OpenStreetMap.
 - **Pixel sprites**: the markers, icons and stars are small bitmaps in
   `lib/pixel.ts`.
 - **Place search**: Photon, a free search service on OpenStreetMap data

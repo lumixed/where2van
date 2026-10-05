@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import { usePlaces } from "@/lib/store";
 import { useUi } from "@/lib/ui";
+import { formatClock, SKY_LABEL, useWorld, type Sky } from "@/lib/world";
+import type { SpriteName } from "@/lib/pixel";
 import { cn, Logo, PixelIcon } from "./pixel";
 
 /** "4 to do · 2 done" */
@@ -19,13 +21,49 @@ export function Tally({ className }: { className?: string }) {
   );
 }
 
+const SKY_ICON: Record<Sky, SpriteName> = {
+  clear: "sun",
+  cloudy: "cloud",
+  fog: "fog",
+  rain: "rain",
+  snow: "snow",
+  storm: "bolt",
+};
+
+/** Vancouver's weather right now, and on desktop the time there too. */
+export function WeatherChip({ full }: { full?: boolean }) {
+  const weather = useWorld((s) => s.weather);
+  const night = useWorld((s) => s.phase === "night");
+  const minutes = useWorld((s) => s.minutes);
+  if (!weather) return null;
+  const icon = weather.sky === "clear" && night ? "moon" : SKY_ICON[weather.sky];
+  return (
+    <p className="flex shrink-0 items-center gap-1.5 text-sm">
+      {full && <span className="text-mute">Vancouver · {formatClock(minutes)} ·</span>}
+      <PixelIcon name={icon} />
+      <span className="sr-only">{SKY_LABEL[weather.sky]},</span>
+      {full && <span aria-hidden>{SKY_LABEL[weather.sky]}</span>}
+      {weather.temperature}°
+    </p>
+  );
+}
+
 /** Phone only: on desktop the side panel shows the same thing. */
 export function TopBar() {
+  const hasWeather = useWorld((s) => s.weather !== null);
   return (
-    <header className="panel absolute inset-x-3 top-3 z-10 flex items-center justify-between px-3 py-2.5 md:hidden">
-      <Logo className="text-xs" />
-      <Tally />
-    </header>
+    <>
+      <header className="panel absolute inset-x-3 top-3 z-10 flex items-center justify-between gap-2 px-3 py-2.5 md:hidden">
+        <Logo className="text-xs" />
+        <WeatherChip />
+        <Tally />
+      </header>
+      {hasWeather && (
+        <div className="panel absolute right-3 top-3 z-10 hidden px-3 py-1.5 md:block">
+          <WeatherChip full />
+        </div>
+      )}
+    </>
   );
 }
 

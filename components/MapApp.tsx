@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { startSync } from "@/lib/sync";
 import { useUi } from "@/lib/ui";
+import { useWorld } from "@/lib/world";
 import { BottomBar, PickBanner, Toast, TopBar } from "./Bars";
 import MapView from "./MapView";
 import PickForUs from "./PickForUs";
@@ -19,6 +20,18 @@ export default function MapApp() {
   const us = useUi((s) => s.us);
 
   useEffect(() => startSync(), []);
+
+  // Keep Vancouver's clock and weather current while the map is open.
+  useEffect(() => {
+    const { tick, refresh } = useWorld.getState();
+    void refresh();
+    const clock = setInterval(tick, 60_000);
+    const forecast = setInterval(refresh, 15 * 60_000);
+    return () => {
+      clearInterval(clock);
+      clearInterval(forecast);
+    };
+  }, []);
 
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-grass">

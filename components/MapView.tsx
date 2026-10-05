@@ -14,6 +14,9 @@ import { pinSvg } from "@/lib/pixel";
 import { usePlaces } from "@/lib/store";
 import { matchesFilter, STATUS_LABEL, type Place } from "@/lib/types";
 import { useUi } from "@/lib/ui";
+import { useWorld } from "@/lib/world";
+import { useLife } from "./useLife";
+import { WorldControl } from "./worldControl";
 
 // The worker file is copied into /public by the `copy:map-worker` script,
 // because the bundler cannot find it next to the library on its own.
@@ -77,7 +80,7 @@ export default function MapView() {
     const pins = markers.current;
     const map = new MapLibreMap({
       container: container.current!,
-      style: pixelStyle,
+      style: pixelStyle(useWorld.getState().phase),
       center: VANCOUVER,
       zoom: 12,
       minZoom: 9.5,
@@ -103,6 +106,11 @@ export default function MapView() {
       }),
       "bottom-right",
     );
+    map.addControl(new WorldControl(), "bottom-right");
+    // The colours follow the time of day; only what changed is redrawn.
+    const stopWatching = useWorld.subscribe((world, before) => {
+      if (world.phase !== before.phase) map.setStyle(pixelStyle(world.phase));
+    });
     map.on("click", (e) => {
       const ui = useUi.getState();
       if (ui.pickMode) ui.dropPin(e.lngLat.lat, e.lngLat.lng);
@@ -110,12 +118,15 @@ export default function MapView() {
     });
     mapRef.current = map;
     return () => {
+      stopWatching();
       map.remove();
       mapRef.current = null;
       pins.clear();
       draftMarker.current = null;
     };
   }, []);
+
+  useLife(mapRef);
 
   useEffect(() => {
     const map = mapRef.current;
