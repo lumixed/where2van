@@ -7,7 +7,7 @@ export type Form =
   | { mode: "add"; draft: PlaceInput | null }
   | { mode: "edit"; id: string; draft: PlaceInput };
 
-export type PanelView = "places" | "calendar";
+export type PanelView = "places" | "calendar" | "memories";
 
 export interface Toast {
   key: number;
@@ -20,6 +20,8 @@ interface UiState {
   selectedId: string | null;
   form: Form | null;
   pickMode: boolean;
+  /** Whether "Pick for us" is open. */
+  picker: boolean;
   /** Which side-panel tab is showing, and whether the panel is open on phones. */
   view: PanelView;
   panelOpen: boolean;
@@ -35,6 +37,8 @@ interface UiState {
   startPick: () => void;
   cancelPick: () => void;
   dropPin: (lat: number, lng: number) => void;
+  openPicker: () => void;
+  closePicker: () => void;
   openPanel: (view: PanelView) => void;
   closePanel: () => void;
   setStatus: (status: StatusFilter) => void;
@@ -47,6 +51,7 @@ export const useUi = create<UiState>()((set, get) => ({
   selectedId: null,
   form: null,
   pickMode: false,
+  picker: false,
   view: "places",
   panelOpen: false,
   status: "all",
@@ -54,7 +59,12 @@ export const useUi = create<UiState>()((set, get) => ({
   toast: null,
   select: (id) => set({ selectedId: id, panelOpen: id ? false : get().panelOpen }),
   openAdd: () =>
-    set({ form: { mode: "add", draft: null }, panelOpen: false, pickMode: false }),
+    set({
+      form: { mode: "add", draft: null },
+      panelOpen: false,
+      pickMode: false,
+      picker: false,
+    }),
   openEdit: (place) =>
     set({
       form: {
@@ -113,6 +123,8 @@ export const useUi = create<UiState>()((set, get) => ({
       })
       .catch(() => {});
   },
+  openPicker: () => set({ picker: true, panelOpen: false, form: null, pickMode: false }),
+  closePicker: () => set({ picker: false }),
   openPanel: (view) => set({ view, panelOpen: true }),
   closePanel: () => set({ panelOpen: false }),
   setStatus: (status) => set({ status }),

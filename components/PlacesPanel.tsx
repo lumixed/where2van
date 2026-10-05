@@ -13,12 +13,14 @@ import {
 import { useUi, type PanelView } from "@/lib/ui";
 import { Tally } from "./Bars";
 import CalendarView from "./CalendarView";
+import MemoryBook from "./MemoryBook";
 import { cn, Logo, PixelIcon } from "./pixel";
 import PlaceRow from "./PlaceRow";
 
-const VIEWS: { value: PanelView; label: string; icon: "list" | "calendar" }[] = [
+const VIEWS: { value: PanelView; label: string; icon: "list" | "calendar" | "heart" }[] = [
   { value: "places", label: "Places", icon: "list" },
   { value: "calendar", label: "Calendar", icon: "calendar" },
+  { value: "memories", label: "Memories", icon: "heart" },
 ];
 
 const STATUS_TABS: { value: StatusFilter; label: string }[] = [
@@ -43,7 +45,7 @@ function byListOrder(a: Place, b: Place) {
 export default function PlacesPanel() {
   const view = useUi((s) => s.view);
   const panelOpen = useUi((s) => s.panelOpen);
-  const { openPanel, closePanel, openAdd } = useUi.getState();
+  const { openPanel, closePanel, openAdd, openPicker } = useUi.getState();
 
   return (
     <>
@@ -70,7 +72,7 @@ export default function PlacesPanel() {
               <span className="sr-only">Close</span>
             </button>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-1.5" role="tablist" aria-label="View">
+          <div className="mt-3 grid grid-cols-3 gap-1.5" role="tablist" aria-label="View">
             {VIEWS.map((tab) => (
               <button
                 key={tab.value}
@@ -78,7 +80,7 @@ export default function PlacesPanel() {
                 role="tab"
                 aria-selected={view === tab.value}
                 onClick={() => openPanel(tab.value)}
-                className="btn"
+                className="btn gap-1.5 px-1 text-sm"
               >
                 <PixelIcon name={tab.icon} />
                 {tab.label}
@@ -87,10 +89,16 @@ export default function PlacesPanel() {
           </div>
         </header>
 
-        {view === "places" ? <PlacesList /> : <CalendarView />}
+        {view === "places" && <PlacesList />}
+        {view === "calendar" && <CalendarView />}
+        {view === "memories" && <MemoryBook />}
 
-        <footer className="border-t-[3px] border-ink p-3">
-          <button type="button" className="btn btn-want w-full py-3" onClick={openAdd}>
+        <footer className="grid grid-cols-2 gap-2 border-t-[3px] border-ink p-3">
+          <button type="button" className="btn py-3" onClick={openPicker}>
+            <PixelIcon name="dice" />
+            Pick for us
+          </button>
+          <button type="button" className="btn btn-want py-3" onClick={openAdd}>
             <PixelIcon name="plus" />
             Add a place
           </button>

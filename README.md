@@ -19,6 +19,9 @@ Then open http://localhost:3000.
 - **To do and Done lists**, filterable by category.
 - **Plan a date** for a to-do and see it on the calendar.
 - **Mark a place as done** with the day you went, a star rating and a note.
+- **Memories**: everything you've done, newest first, like a scrapbook.
+- **Pick for us**: can't decide? It picks a random to-do, by category or from
+  the ones closest to you.
 
 ## How it works
 

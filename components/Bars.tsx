@@ -30,18 +30,22 @@ export function TopBar() {
 }
 
 export function BottomBar() {
-  const { openAdd, openPanel } = useUi.getState();
+  const { openAdd, openPanel, openPicker } = useUi.getState();
   return (
-    <nav className="absolute inset-x-3 bottom-3 z-10 flex gap-2 pb-[env(safe-area-inset-bottom)] md:hidden">
-      <button type="button" className="btn flex-1 px-1 py-3" onClick={() => openPanel("places")}>
+    <nav className="absolute inset-x-3 bottom-3 z-10 grid grid-cols-4 gap-2 pb-[env(safe-area-inset-bottom)] md:hidden">
+      <button type="button" className="btn chip py-2" onClick={() => openPanel("places")}>
         <PixelIcon name="list" />
         Places
       </button>
-      <button type="button" className="btn flex-1 px-1 py-3" onClick={() => openPanel("calendar")}>
+      <button type="button" className="btn chip py-2" onClick={() => openPanel("calendar")}>
         <PixelIcon name="calendar" />
         Calendar
       </button>
-      <button type="button" className="btn btn-want flex-1 px-1 py-3" onClick={openAdd}>
+      <button type="button" className="btn chip py-2" onClick={openPicker}>
+        <PixelIcon name="dice" />
+        Pick
+      </button>
+      <button type="button" className="btn btn-want chip py-2" onClick={openAdd}>
         <PixelIcon name="plus" />
         Add
       </button>

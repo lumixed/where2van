@@ -6,6 +6,7 @@ import { usePlaces, type PlaceInput } from "@/lib/store";
 import { CATEGORIES, CATEGORY_LABEL } from "@/lib/types";
 import { useUi, type Form } from "@/lib/ui";
 import { PixelIcon } from "./pixel";
+import Sheet from "./Sheet";
 
 export default function PlaceForm({ form }: { form: Form }) {
   const closeForm = useUi((s) => s.closeForm);
@@ -13,29 +14,9 @@ export default function PlaceForm({ form }: { form: Form }) {
     form.mode === "edit" ? "Edit place" : form.draft ? "About this place" : "Add a place";
 
   return (
-    <div
-      // Phone: a sheet over a dimmed map. Desktop: docked beside the side
-      // panel so the map and the new pin stay visible and usable.
-      className="absolute inset-0 z-40 flex items-end justify-center md:pointer-events-none md:justify-start md:pb-4 md:pl-[392px]"
-      onKeyDown={(e) => e.key === "Escape" && closeForm()}
-    >
-      <div className="absolute inset-0 bg-ink/40 md:hidden" onClick={closeForm} />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className="panel pop relative w-full border-x-0 border-b-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pointer-events-auto md:w-[360px] md:border-[3px] md:pb-4"
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-xl font-bold">{title}</h2>
-          <button type="button" className="btn px-2.5 py-2.5" onClick={closeForm}>
-            <PixelIcon name="close" />
-            <span className="sr-only">Close</span>
-          </button>
-        </div>
-        {form.draft ? <Details form={form} draft={form.draft} /> : <Finder />}
-      </div>
-    </div>
+    <Sheet title={title} onClose={closeForm}>
+      {form.draft ? <Details form={form} draft={form.draft} /> : <Finder />}
+    </Sheet>
   );
 }
 
