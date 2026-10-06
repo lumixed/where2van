@@ -62,15 +62,26 @@ export default function MemoryBook() {
 
   return (
     <div className="scroll-thin min-h-0 flex-1 overflow-y-auto">
-      <p className="divider flex items-center gap-1.5 px-4 py-3">
-        <PixelIcon name="heart" className="size-3.5 text-heart" />
-        <span className="font-bold">
-          {memories.length} {memories.length === 1 ? "memory" : "memories"}
-        </span>
-        {ratings.length > 0 && (
-          <span className="text-mute">· {average.toFixed(1)} stars on average</span>
-        )}
-      </p>
+      <div className="divider flex items-center gap-3 px-4 py-3">
+        <p className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5">
+          <PixelIcon name="heart" className="size-3.5 text-heart" />
+          <span className="font-bold">
+            {memories.length} {memories.length === 1 ? "memory" : "memories"}
+          </span>
+          {ratings.length > 0 && (
+            <span className="text-sm text-mute">· {average.toFixed(1)} stars on average</span>
+          )}
+        </p>
+        <button
+          type="button"
+          className="btn btn-want shrink-0"
+          // Oldest first: the replay tells the story in the order it happened.
+          onClick={() => useUi.getState().startReplay([...memories].reverse().map((m) => m.id))}
+        >
+          <PixelIcon name="play" />
+          Replay
+        </button>
+      </div>
       {byMonth(memories).map((month) => (
         <section key={month.key} aria-label={month.label}>
           <h3 className="sticky top-0 z-[1] bg-shade px-4 py-1.5 text-sm font-bold">

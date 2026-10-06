@@ -83,6 +83,8 @@ export default function MapView() {
   const places = usePlaces((s) => s.places);
   const selectedId = useUi((s) => s.selectedId);
   const previewId = useUi((s) => s.previewId);
+  /** The memory a replay is showing right now, if one is running. */
+  const replayId = useUi((s) => (s.replay ? s.replay.ids[s.replay.index] : null));
   const status = useUi((s) => s.status);
   const category = useUi((s) => s.category);
   const pickMode = useUi((s) => s.pickMode);
@@ -206,8 +208,9 @@ export default function MapView() {
       paintPin(
         marker.getElement(),
         place,
-        place.id === selectedId || place.id === previewId,
-        matchesFilter(place, status, category),
+        place.id === selectedId || place.id === previewId || place.id === replayId,
+        // A replay shows its memory even if a filter would hide it.
+        place.id === replayId || matchesFilter(place, status, category),
       );
     }
     for (const [id, marker] of pins) {
@@ -216,7 +219,7 @@ export default function MapView() {
         pins.delete(id);
       }
     }
-  }, [places, selectedId, previewId, status, category]);
+  }, [places, selectedId, previewId, replayId, status, category]);
 
   // Pins that would sit on top of each other merge into one numbered pin,
   // which zooms in on its members when tapped. Redone whenever the zoom changes.
@@ -229,7 +232,11 @@ export default function MapView() {
       groupMarkers.current = [];
       // The pin in focus always stands alone.
       const loose = places.filter(
-        (p) => matchesFilter(p, status, category) && p.id !== selectedId && p.id !== previewId,
+        (p) =>
+          matchesFilter(p, status, category) &&
+          p.id !== selectedId &&
+          p.id !== previewId &&
+          p.id !== replayId,
       );
       const groups =
         map.getZoom() >= GROUP_UNTIL_ZOOM
@@ -285,7 +292,7 @@ export default function MapView() {
     return () => {
       map.off("zoom", regroup);
     };
-  }, [places, selectedId, previewId, status, category]);
+  }, [places, selectedId, previewId, replayId, status, category]);
 
   // The preview bubble above a pin that has been tapped once.
   useEffect(() => {
@@ -321,10 +328,12 @@ export default function MapView() {
     };
   }, [previewId, places]);
 
+  // Opening a place, or reaching it in a replay, flies the map over to it.
+  const focusId = selectedId ?? replayId;
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !selectedId) return;
-    const place = usePlaces.getState().places.find((p) => p.id === selectedId);
+    if (!map || !focusId) return;
+    const place = usePlaces.getState().places.find((p) => p.id === focusId);
     if (!place) return;
     map.flyTo({
       center: [place.lng, place.lat],
@@ -332,7 +341,7 @@ export default function MapView() {
       padding: viewPadding(CARD_HEIGHT),
       duration: 1400,
     });
-  }, [selectedId]);
+  }, [focusId]);
 
   // Preview marker for the place being added.
   useEffect(() => {

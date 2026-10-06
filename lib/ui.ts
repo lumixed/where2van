@@ -37,6 +37,8 @@ interface UiState {
   picker: boolean;
   /** Whether the "Us" box (names and faces) is open. */
   us: boolean;
+  /** The memory replay in progress: which places, in order, and where it is. */
+  replay: { ids: string[]; index: number; playing: boolean } | null;
   /** Which side-panel tab is showing, and whether the panel is open on phones. */
   view: PanelView;
   panelOpen: boolean;
@@ -58,6 +60,11 @@ interface UiState {
   closePicker: () => void;
   openUs: () => void;
   closeUs: () => void;
+  startReplay: (ids: string[]) => void;
+  /** Moves the replay on (or back); running off the end finishes it. */
+  stepReplay: (by: number) => void;
+  toggleReplay: () => void;
+  stopReplay: () => void;
   openPanel: (view: PanelView) => void;
   closePanel: () => void;
   setStatus: (status: StatusFilter) => void;
@@ -75,6 +82,7 @@ export const useUi = create<UiState>()((set, get) => ({
   pickMode: false,
   picker: false,
   us: false,
+  replay: null,
   view: "places",
   panelOpen: false,
   status: "all",
@@ -82,7 +90,13 @@ export const useUi = create<UiState>()((set, get) => ({
   toast: null,
   banner: null,
   select: (id) =>
-    set({ selectedId: id, previewId: null, panelOpen: id ? false : get().panelOpen }),
+    set({
+      selectedId: id,
+      previewId: null,
+      panelOpen: id ? false : get().panelOpen,
+      // Opening a place ends a replay; closing one does not.
+      replay: id ? null : get().replay,
+    }),
   preview: (id) => set({ previewId: id, selectedId: null }),
   openAdd: () =>
     set({
@@ -155,6 +169,34 @@ export const useUi = create<UiState>()((set, get) => ({
   closePicker: () => set({ picker: false }),
   openUs: () => set({ us: true, picker: false, panelOpen: false, form: null, pickMode: false }),
   closeUs: () => set({ us: false }),
+  startReplay: (ids) => {
+    if (ids.length === 0) return;
+    set({
+      replay: { ids, index: 0, playing: true },
+      selectedId: null,
+      previewId: null,
+      panelOpen: false,
+      form: null,
+      picker: false,
+      us: false,
+    });
+  },
+  stepReplay: (by) => {
+    const replay = get().replay;
+    if (!replay) return;
+    const index = replay.index + by;
+    if (index >= replay.ids.length) {
+      set({ replay: null });
+      get().showToast("That's all our memories so far");
+    } else {
+      set({ replay: { ...replay, index: Math.max(0, index) } });
+    }
+  },
+  toggleReplay: () => {
+    const replay = get().replay;
+    if (replay) set({ replay: { ...replay, playing: !replay.playing } });
+  },
+  stopReplay: () => set({ replay: null }),
   openPanel: (view) => set({ view, panelOpen: true }),
   closePanel: () => set({ panelOpen: false }),
   setStatus: (status) => set({ status }),

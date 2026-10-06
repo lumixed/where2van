@@ -32,13 +32,17 @@ Then open http://localhost:3000.
   past, and the to-do that has waited longest.
 - **A living map**: it follows Vancouver's real time of day (golden at sunrise
   and sunset, lit up at night) and its real weather (rain, snow, fog, clouds).
-  The SeaBus and an Aquabus cross the water, and seagulls drift over. Two
-  buttons by the zoom pin the look and mute sounds.
+  The SeaBus and an Aquabus cross the water, and seagulls drift over. Buttons
+  by the zoom pin the look and mute sounds.
 - **Little rewards**: marking a place done stamps its pin and sends up hearts,
   a banner announces each badge earned, and buttons blip (there is a mute
   button). Removing a place or a photo can be undone for a few seconds.
 - **Tidy pins**: the first tap on a pin shows a small preview, the second opens
   it. Pins that would overlap merge into one numbered pin until you zoom in.
+- **Replay**: a button in Memories flies the map from memory to memory in the
+  order they happened, showing each one's photo, ratings and note.
+- **Explored map**: places we haven't been near are faded, and gain colour
+  once we have. A button by the zoom turns this off.
 - **Night look**: when the map goes dark at night, the panels do too.
 - **On a phone**: swipe a place's card down to close it, and press and hold the
   map to add a place right there (right-click on a computer).
@@ -86,4 +90,3 @@ Then open http://localhost:3000.
 ## Roadmap
 
 1. Install as a phone app
-2. Replay our memories, and the map filling in as we explore

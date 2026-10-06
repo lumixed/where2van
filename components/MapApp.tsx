@@ -11,6 +11,7 @@ import PlaceCard from "./PlaceCard";
 import PlaceForm from "./PlaceForm";
 import PlacesPanel from "./PlacesPanel";
 import Reminders from "./Reminders";
+import Replay from "./Replay";
 import { useCelebrations } from "./useCelebrations";
 import UsSheet from "./UsSheet";
 import Welcome from "./Welcome";
@@ -50,6 +51,7 @@ export default function MapApp() {
       <Reminders />
       <PlacesPanel />
       <PlaceCard />
+      <Replay />
       {pickMode && <PickBanner />}
       {form && !pickMode && <PlaceForm form={form} />}
       {picker && <PickForUs />}
