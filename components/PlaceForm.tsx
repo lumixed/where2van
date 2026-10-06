@@ -274,7 +274,7 @@ function Details({ form, draft }: { form: Form; draft: PlaceInput }) {
       </label>
 
       {twin && (
-        <div role="status" className="border-[3px] border-sky bg-white/60 px-3 py-2">
+        <div role="status" className="border-[3px] border-sky bg-inset px-3 py-2">
           <p>
             <span className="font-bold">{twin.name}</span> is already on the map, under{" "}
             {STATUS_LABEL[twin.status]}.

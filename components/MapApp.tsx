@@ -13,6 +13,7 @@ import PlacesPanel from "./PlacesPanel";
 import Reminders from "./Reminders";
 import { useCelebrations } from "./useCelebrations";
 import UsSheet from "./UsSheet";
+import Welcome from "./Welcome";
 
 export default function MapApp() {
   const form = useUi((s) => s.form);
@@ -22,6 +23,12 @@ export default function MapApp() {
 
   useEffect(() => startSync(), []);
   useCelebrations();
+
+  // The boxes around the map go dark with it at night.
+  const night = useWorld((s) => s.phase === "night");
+  useEffect(() => {
+    document.documentElement.classList.toggle("night", night);
+  }, [night]);
 
   // Keep Vancouver's clock and weather current while the map is open.
   useEffect(() => {
@@ -49,6 +56,7 @@ export default function MapApp() {
       {us && <UsSheet />}
       <Toast />
       <BadgeBanner />
+      <Welcome />
     </main>
   );
 }

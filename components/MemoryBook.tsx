@@ -83,7 +83,7 @@ export default function MemoryBook() {
                   type="button"
                   onClick={() => useUi.getState().select(memory.id)}
                   className={cn(
-                    "block w-full border-[3px] bg-white/50 p-3 text-left hover:bg-shade",
+                    "block w-full border-[3px] bg-inset p-3 text-left hover:bg-shade",
                     memory.id === selectedId ? "border-ink bg-shade" : "border-ink/20",
                   )}
                 >

@@ -70,6 +70,8 @@ const FORM_HEIGHT = 440;
 const GROUP_RADIUS = 34;
 /** Zoomed in this far, pins are never merged: there is nowhere closer to go. */
 const GROUP_UNTIL_ZOOM = 16.5;
+/** How long a finger has to rest on the map to drop a pin there. */
+const LONG_PRESS_MS = 600;
 
 export default function MapView() {
   const container = useRef<HTMLDivElement>(null);
@@ -129,8 +131,45 @@ export default function MapView() {
       if (ui.pickMode) ui.dropPin(e.lngLat.lat, e.lngLat.lng);
       else ui.select(null);
     });
+
+    // Press and hold (or right-click) drops a pin on that spot and opens the
+    // add form. Moving the finger, or a second finger, means panning instead.
+    let press: ReturnType<typeof setTimeout> | undefined;
+    let pressedAt = 0;
+    const cancelPress = () => clearTimeout(press);
+    const addHere = (lat: number, lng: number) => {
+      // Android reports a long press as a right-click as well; count it once.
+      if (Date.now() - pressedAt < 1000) return;
+      pressedAt = Date.now();
+      useUi.getState().dropPin(lat, lng);
+    };
+    map.on("touchstart", (e) => {
+      cancelPress();
+      if (e.originalEvent.touches.length !== 1) return;
+      const start = e.point;
+      const { lat, lng } = e.lngLat;
+      press = setTimeout(() => {
+        navigator.vibrate?.(15);
+        addHere(lat, lng);
+      }, LONG_PRESS_MS);
+      const moved = (move: { point: typeof start }) => {
+        if (move.point.dist(start) > 10) {
+          cancelPress();
+          map.off("touchmove", moved);
+        }
+      };
+      map.on("touchmove", moved);
+      map.once("touchend", () => map.off("touchmove", moved));
+    });
+    map.on("touchend", cancelPress);
+    map.on("touchcancel", cancelPress);
+    map.on("contextmenu", (e) => {
+      e.preventDefault();
+      addHere(e.lngLat.lat, e.lngLat.lng);
+    });
     mapRef.current = map;
     return () => {
+      cancelPress();
       stopWatching();
       map.remove();
       mapRef.current = null;

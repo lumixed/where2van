@@ -93,7 +93,7 @@ function PersonBox({ id }: { id: PersonId }) {
                   setScore(n);
                   input.current?.click();
                 }}
-                className="grid aspect-square w-full place-items-center border-[3px] border-dashed border-ink/40 bg-white/60 text-xl font-bold text-mute hover:bg-shade"
+                className="grid aspect-square w-full place-items-center border-[3px] border-dashed border-ink/40 bg-inset text-xl font-bold text-mute hover:bg-shade"
               >
                 {busy && score === n ? "…" : face ? <Face path={face} className="border-0" /> : "+"}
               </button>

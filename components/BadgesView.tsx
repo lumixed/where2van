@@ -55,12 +55,12 @@ export default function BadgesView() {
           return (
             <li
               key={badge.id}
-              className={cn("border-[3px] p-2.5", done ? "border-ink bg-white/60" : "border-ink/20")}
+              className={cn("border-[3px] p-2.5", done ? "border-ink bg-inset" : "border-ink/20")}
             >
               <span
                 className={cn(
                   "grid size-10 place-items-center border-[3px]",
-                  done ? "border-ink bg-want" : "border-ink/25 bg-shade text-ink/35",
+                  done ? "border-ink bg-want text-[#2a2238]" : "border-ink/25 bg-shade text-ink/35",
                 )}
               >
                 <PixelIcon name={badge.icon} className="size-[21px]" />

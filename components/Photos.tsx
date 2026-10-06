@@ -128,7 +128,7 @@ function Lightbox({
       role="dialog"
       aria-modal="true"
       aria-label={`Photo ${index + 1} of ${count}, ${place.name}`}
-      className="fixed inset-0 z-50 flex flex-col gap-3 bg-ink/90 p-3 text-paper"
+      className="lightbox fixed inset-0 z-50 flex flex-col gap-3 p-3"
       onKeyDown={(e) => {
         if (e.key === "Escape") onIndex(null);
         if (e.key === "ArrowLeft" && count > 1) step(-1);
@@ -149,7 +149,7 @@ function Lightbox({
         <img
           src={photoUrl(path)}
           alt={`Photo ${index + 1} of ${place.name}`}
-          className="max-h-full max-w-full border-[3px] border-paper object-contain"
+          className="max-h-full max-w-full border-[3px] border-[#fff6df] object-contain"
           onClick={(e) => e.stopPropagation()}
         />
       </div>

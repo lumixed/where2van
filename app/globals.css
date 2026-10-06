@@ -3,16 +3,35 @@
 @theme inline {
   --font-sans: var(--font-digits), var(--font-pixelify);
   --font-logo: var(--font-press-start);
+}
 
+/* Not "inline": these stay live variables, so night can swap them below. */
+@theme {
   --color-ink: #2a2238;
   --color-paper: #fff6df;
   --color-shade: #f0dfb6;
+  /* A slightly lifted surface inside a panel, for notes and cards. */
+  --color-inset: rgb(255 255 255 / 0.6);
+  --color-field: #ffffff;
   --color-mute: #6f6478;
   --color-want: #f8c23c;
   --color-been: #74c653;
   --color-heart: #e2584d;
   --color-sky: #2f7fd8;
   --color-grass: #b5e08a;
+}
+
+/* When the map is in its night look, the boxes around it go dark too. */
+html.night {
+  --color-ink: #e9eefb;
+  --color-paper: #19223a;
+  --color-shade: #283454;
+  --color-inset: rgb(255 255 255 / 0.07);
+  --color-field: #0f1728;
+  --color-mute: #9aa7c6;
+  --color-heart: #ff7d72;
+  --color-sky: #84b9ff;
+  --color-grass: #1d2a40;
 }
 
 html,
@@ -58,8 +77,8 @@ button:disabled {
     font-weight: 600;
     line-height: 1.25;
     box-shadow:
-      inset -3px -3px 0 rgb(42 34 56 / 0.16),
-      inset 3px 3px 0 rgb(255 255 255 / 0.6);
+      inset -3px -3px 0 rgb(0 0 0 / 0.14),
+      inset 3px 3px 0 var(--color-inset);
   }
 
   .btn:hover {
@@ -68,11 +87,17 @@ button:disabled {
 
   .btn:active {
     translate: 2px 2px;
-    box-shadow: inset 3px 3px 0 rgb(42 34 56 / 0.16);
+    box-shadow: inset 3px 3px 0 rgb(0 0 0 / 0.14);
   }
 
   .btn:disabled {
     opacity: 0.5;
+  }
+
+  /* Text on the yellow and green buttons stays dark, day or night. */
+  .btn-want,
+  .btn-been {
+    color: #2a2238;
   }
 
   .btn-want {
@@ -148,7 +173,7 @@ button:disabled {
     width: 100%;
     padding: 0.5rem 0.7rem;
     border: 3px solid var(--color-ink);
-    background: #fff;
+    background: var(--color-field);
     color: var(--color-ink);
   }
 
@@ -168,8 +193,14 @@ button:disabled {
   }
 
   .divider {
-    border-bottom: 3px dashed rgb(42 34 56 / 0.22);
+    border-bottom: 3px dashed color-mix(in srgb, var(--color-ink) 22%, transparent);
   }
+}
+
+/* A photo opened full screen: always a dark room, whatever the time of day. */
+.lightbox {
+  background: rgb(26 21 36 / 0.92);
+  color: #fff6df;
 }
 
 .scroll-thin {
@@ -395,6 +426,16 @@ button:disabled {
   border-top: 3px solid var(--color-ink) !important;
 }
 
+/* The library's own icons are dark drawings; flip them on dark buttons. */
+html.night .maplibregl-ctrl-icon,
+html.night .maplibregl-ctrl-attrib-button {
+  filter: invert(1);
+}
+
+html.night input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
 /* Our own buttons in that group carry pixel icons, not the library's. */
 .world-ctrl button {
   display: grid;
@@ -403,7 +444,8 @@ button:disabled {
 }
 
 .maplibregl-ctrl-attrib {
-  background: rgb(255 246 223 / 0.85) !important;
+  background: color-mix(in srgb, var(--color-paper) 85%, transparent) !important;
+  color: var(--color-ink);
   font-size: 11px;
 }
 

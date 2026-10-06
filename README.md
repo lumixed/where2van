@@ -39,6 +39,10 @@ Then open http://localhost:3000.
   button). Removing a place or a photo can be undone for a few seconds.
 - **Tidy pins**: the first tap on a pin shows a small preview, the second opens
   it. Pins that would overlap merge into one numbered pin until you zoom in.
+- **Night look**: when the map goes dark at night, the panels do too.
+- **On a phone**: swipe a place's card down to close it, and press and hold the
+  map to add a place right there (right-click on a computer).
+- **First visit**: three short tips explain the basics, once per device.
 - **Pick for us**: can't decide? It picks a random to-do, by category or from
   the ones closest to you.
 

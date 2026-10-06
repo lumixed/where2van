@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { dayKey, formatDay, formatPlan } from "@/lib/dates";
 import { PERSON_IDS, usePeople } from "@/lib/people";
 import { useSync } from "@/lib/remote";
@@ -29,10 +29,24 @@ export default function PlaceCard() {
   return <Card key={place.id} place={place} />;
 }
 
+/** Dragging the card down further than this, in pixels, closes it. */
+const SWIPE_TO_CLOSE = 90;
+
 function Card({ place }: { place: Place }) {
   const [mode, setMode] = useState<Mode>("view");
   const { select } = useUi.getState();
   const back = () => setMode("view");
+
+  // On a phone the card can be flicked away: it follows the finger down and
+  // closes if let go far enough, or springs back.
+  const dragFrom = useRef<number | null>(null);
+  const [pulled, setPulled] = useState(0);
+  const endDrag = () => {
+    if (dragFrom.current === null) return;
+    dragFrom.current = null;
+    if (pulled > SWIPE_TO_CLOSE) select(null);
+    else setPulled(0);
+  };
 
   return (
     <section
@@ -42,7 +56,19 @@ function Card({ place }: { place: Place }) {
         "inset-x-3 bottom-3 mb-[env(safe-area-inset-bottom)]",
         "md:inset-x-auto md:bottom-4 md:left-[392px] md:w-[360px]",
       )}
+      style={{ translate: `0 ${pulled}px`, transition: pulled ? "none" : "translate 0.15s" }}
+      onTouchStart={(e) => {
+        // Only from the top of the card, and never while typing in it.
+        const typing = (e.target as HTMLElement).closest("input, textarea, select");
+        if (e.currentTarget.scrollTop === 0 && !typing) dragFrom.current = e.touches[0].clientY;
+      }}
+      onTouchMove={(e) => {
+        if (dragFrom.current !== null) setPulled(Math.max(0, e.touches[0].clientY - dragFrom.current));
+      }}
+      onTouchEnd={endDrag}
+      onTouchCancel={endDrag}
     >
+      <div aria-hidden className="mx-auto -mt-1 mb-2 h-1.5 w-10 bg-ink/25 md:hidden" />
       <div className="flex items-start gap-3">
         <Tile category={place.category} status={place.status} />
         <div className="min-w-0 flex-1">
@@ -76,7 +102,7 @@ function Details({ place, setMode }: { place: Place; setMode: (mode: Mode) => vo
   return (
     <>
       {place.note && (
-        <p className="mt-3 border-[3px] border-dashed border-ink/25 bg-white/60 px-3 py-2">
+        <p className="mt-3 border-[3px] border-dashed border-ink/25 bg-inset px-3 py-2">
           {place.note}
         </p>
       )}

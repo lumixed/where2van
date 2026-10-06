@@ -21,7 +21,7 @@ export default function Sheet({
       className="absolute inset-0 z-40 flex items-end justify-center md:pointer-events-none md:justify-start md:pb-4 md:pl-[392px]"
       onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
-      <div className="absolute inset-0 bg-ink/40 md:hidden" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40 md:hidden" onClick={onClose} />
       <div
         role="dialog"
         aria-modal="true"

@@ -55,7 +55,7 @@ export default function PlacesPanel() {
   return (
     <>
       {panelOpen && (
-        <div className="absolute inset-0 z-10 bg-ink/40 md:hidden" onClick={closePanel} />
+        <div className="absolute inset-0 z-10 bg-black/40 md:hidden" onClick={closePanel} />
       )}
       <aside
         aria-label="Our places"

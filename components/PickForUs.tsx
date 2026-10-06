@@ -127,7 +127,7 @@ export default function PickForUs() {
 
       <div
         aria-live="polite"
-        className="mt-3 flex min-h-[84px] items-center gap-3 border-[3px] border-dashed border-ink/25 bg-white/60 px-3 py-3"
+        className="mt-3 flex min-h-[84px] items-center gap-3 border-[3px] border-dashed border-ink/25 bg-inset px-3 py-3"
       >
         {pool.length === 0 ? (
           <p className="text-mute">Nothing to do here yet. Add a place first.</p>
