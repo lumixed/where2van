@@ -119,12 +119,15 @@ interface WorldState {
   weather: Weather | null;
   /** Whether tapping things makes sounds. */
   sound: boolean;
+  /** Whether parts of the map we have not been to are shown faded. */
+  explore: boolean;
   /** Re-reads the clock; called once a minute. */
   tick: () => void;
   /** Fetches the current weather and today's sun times. */
   refresh: () => Promise<void>;
   cycleChoice: () => void;
   toggleSound: () => void;
+  toggleExplore: () => void;
 }
 
 const ORDER: PhaseChoice[] = ["auto", "day", "dusk", "night"];
@@ -148,6 +151,7 @@ export const useWorld = create<WorldState>()(
         sun,
         weather: null,
         sound: true,
+        explore: true,
         tick: () => settle({ minutes: vancouverNow().minutes }),
         refresh: async () => {
           try {
@@ -176,14 +180,15 @@ export const useWorld = create<WorldState>()(
         cycleChoice: () =>
           settle({ choice: ORDER[(ORDER.indexOf(get().choice) + 1) % ORDER.length] }),
         toggleSound: () => set({ sound: !get().sound }),
+        toggleExplore: () => set({ explore: !get().explore }),
       };
     },
     {
       name: "where2van:world",
-      partialize: ({ choice, sound }) => ({ choice, sound }),
+      partialize: ({ choice, sound, explore }) => ({ choice, sound, explore }),
       // A saved choice other than "auto" overrides the look worked out from the clock.
       merge: (saved, current) => {
-        const kept = (saved ?? {}) as Partial<Pick<WorldState, "choice" | "sound">>;
+        const kept = (saved ?? {}) as Partial<Pick<WorldState, "choice" | "sound" | "explore">>;
         const choice = kept.choice ?? current.choice;
         return { ...current, ...kept, phase: choice === "auto" ? current.phase : choice };
       },

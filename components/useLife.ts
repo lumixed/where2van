@@ -3,6 +3,7 @@
 import { useEffect, type RefObject } from "react";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { MAP_PIXEL } from "@/lib/mapStyle";
+import { usePlaces } from "@/lib/store";
 import { ROUTES, type LngLat, type Route } from "@/lib/transit";
 import { useWorld, type Phase, type Weather } from "@/lib/world";
 
@@ -15,6 +16,10 @@ const INK = "#2a2238";
 const FPS = 20;
 /** Below this zoom the city is too small for boats and birds to read. */
 const MIN_ZOOM = 10.5;
+/** How far around a place we have been counts as explored. */
+const EXPLORED_METRES = 550;
+/** Never smaller than this on the canvas, so a visit still shows when zoomed out. */
+const EXPLORED_MIN_PIXELS = 9;
 
 // ---- ferries that shuttle back and forth along a fixed route ----
 
@@ -164,6 +169,35 @@ export function useLife(mapRef: RefObject<MapLibreMap | null>) {
       ctx.fillRect(Math.round(x), Math.round(y), w, h);
     };
 
+    /**
+     * Lays a pale veil over the whole map and wipes it away around every
+     * place we have been, so the city gains colour as we explore it.
+     */
+    function drawUnexplored(zoom: number, phase: Phase) {
+      const visited = usePlaces.getState().places.filter((p) => p.status === "done");
+      // With nowhere visited yet there is nothing to compare against.
+      if (visited.length === 0) return;
+      const metresPerPixel =
+        ((78271.5 * Math.cos((map!.getCenter().lat * Math.PI) / 180)) / 2 ** zoom) * MAP_PIXEL;
+      const radius = Math.max(EXPLORED_METRES / metresPerPixel, EXPLORED_MIN_PIXELS);
+      box(0, 0, width, height, phase === "night" ? "rgb(9 13 24 / 0.5)" : "rgb(255 250 236 / 0.38)");
+      ctx.globalCompositeOperation = "destination-out";
+      for (const place of visited) {
+        const p = spot([place.lng, place.lat]);
+        if (!onScreen(p, radius + 4)) continue;
+        // A soft outer ring, then the clear middle.
+        ctx.fillStyle = "rgb(0 0 0 / 0.5)";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius + 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#000";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalCompositeOperation = "source-over";
+    }
+
     function drawBoats(now: number, zoom: number) {
       const metresPerPixel =
         ((78271.5 * Math.cos((map!.getCenter().lat * Math.PI) / 180)) / 2 ** zoom) * MAP_PIXEL;
@@ -289,9 +323,12 @@ export function useLife(mapRef: RefObject<MapLibreMap | null>) {
       if (stamp - last < 1000 / FPS) return;
       last = stamp;
       const now = stamp / 1000;
-      const { phase, weather } = useWorld.getState();
+      const { phase, weather, explore } = useWorld.getState();
       const zoom = map.getZoom();
       ctx.clearRect(0, 0, width, height);
+
+      // First, so that everything else is drawn on top of the veil.
+      if (explore) drawUnexplored(zoom, phase);
 
       if (!still && zoom >= MIN_ZOOM) {
         drawBoats(now, zoom);

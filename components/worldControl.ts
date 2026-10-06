@@ -11,9 +11,9 @@ const CHOICE: Record<PhaseChoice, { icon: SpriteName; label: string; said: strin
 };
 
 /**
- * Two buttons that sit with the zoom buttons: one cycles the map between
- * following the real time, always day, always sunset and always night; the
- * other turns sounds on and off.
+ * Three buttons that sit with the zoom buttons: one cycles the map between
+ * following the real time, always day, always sunset and always night; one
+ * fades the parts of the city we have not been to; one turns sounds off.
  */
 export class WorldControl implements IControl {
   private container?: HTMLDivElement;
@@ -34,6 +34,19 @@ export class WorldControl implements IControl {
     sound.type = "button";
     sound.addEventListener("click", () => useWorld.getState().toggleSound());
 
+    const explore = document.createElement("button");
+    explore.type = "button";
+    explore.addEventListener("click", () => {
+      useWorld.getState().toggleExplore();
+      useUi
+        .getState()
+        .showToast(
+          useWorld.getState().explore
+            ? "Places we haven't been are faded"
+            : "The whole map is in full colour",
+        );
+    });
+
     const paint = () => {
       const world = useWorld.getState();
       const choice = CHOICE[world.choice];
@@ -44,11 +57,17 @@ export class WorldControl implements IControl {
       sound.title = world.sound ? "Sounds are on" : "Sounds are off";
       sound.setAttribute("aria-label", `${sound.title}. Press to switch.`);
       sound.setAttribute("aria-pressed", String(world.sound));
+      explore.innerHTML = iconSvg(world.explore ? "fog" : "pin");
+      explore.title = world.explore
+        ? "Fading the parts we haven't been to"
+        : "Showing the whole map in full colour";
+      explore.setAttribute("aria-label", `${explore.title}. Press to switch.`);
+      explore.setAttribute("aria-pressed", String(world.explore));
     };
     paint();
     this.unsubscribe = useWorld.subscribe(paint);
 
-    container.append(time, sound);
+    container.append(time, explore, sound);
     this.container = container;
     return container;
   }
